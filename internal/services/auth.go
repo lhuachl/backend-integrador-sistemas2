@@ -11,6 +11,7 @@ import (
 	"rest-api/pkg/models"
 
 	"github.com/google/uuid"
+	"github.com/supabase-community/supabase-go"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -19,14 +20,25 @@ type AuthService struct {
 	tokenRepo *repositories.TokenRepository
 	db        *config.DB
 	email     *email.Client
+	supabase  *supabase.Client
 }
 
-func NewAuthService(userRepo *repositories.UserRepository, tokenRepo *repositories.TokenRepository, db *config.DB, emailClient *email.Client) *AuthService {
+func NewAuthService(userRepo *repositories.UserRepository, tokenRepo *repositories.TokenRepository, db *config.DB, emailClient *email.Client, supabaseURL, supabaseKey string) *AuthService {
+	client, err := supabase.NewClient(supabaseURL, supabaseKey, nil)
+	if err != nil {
+		return &AuthService{
+			userRepo:  userRepo,
+			tokenRepo: tokenRepo,
+			db:        db,
+			email:     emailClient,
+		}
+	}
 	return &AuthService{
 		userRepo:  userRepo,
 		tokenRepo: tokenRepo,
 		db:        db,
 		email:     emailClient,
+		supabase:  client,
 	}
 }
 
@@ -99,6 +111,33 @@ func (s *AuthService) createSupabaseUser(ctx context.Context, email, password st
 	return "", nil
 }
 
-func (s *AuthService) Login(ctx context.Context, req *models.LoginRequest) (string, error) {
-	return "", nil
+func (s *AuthService) Login(ctx context.Context, req *models.LoginRequest) (*models.AuthResponse, error) {
+	if s.supabase == nil {
+		return nil, errors.New("supabase client not initialized")
+	}
+
+	resp, err := s.supabase.SignInWithEmailPassword(req.Email, req.Password)
+	if err != nil {
+		return nil, errors.New("invalid credentials")
+	}
+
+	name := ""
+	if resp.User.UserMetadata != nil {
+		if n, ok := resp.User.UserMetadata["name"].(string); ok {
+			name = n
+		}
+	}
+
+	return &models.AuthResponse{
+		Token:     resp.AccessToken,
+		ExpiresIn: int(resp.ExpiresIn),
+		User: &models.User{
+			Email: resp.User.Email,
+			Name:  name,
+		},
+	}, nil
+}
+
+func (s *AuthService) GetUserByID(ctx context.Context, userID uuid.UUID) (*models.User, error) {
+	return s.userRepo.GetByID(ctx, userID)
 }

@@ -1,19 +1,26 @@
 package middleware
 
 import (
-	"context"
+	"encoding/base64"
+	"encoding/json"
+	"errors"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type contextKey string
 
 const UserIDKey contextKey = "user_id"
 
-func AuthMiddleware(pool *pgxpool.Pool) gin.HandlerFunc {
+type JWTClaims struct {
+	Sub   string `json:"sub"`
+	Email string `json:"email"`
+	Exp   int    `json:"exp"`
+}
+
+func AuthMiddleware(supabaseURL, anonKey string) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		authHeader := c.GetHeader("Authorization")
 		if authHeader == "" {
@@ -29,21 +36,37 @@ func AuthMiddleware(pool *pgxpool.Pool) gin.HandlerFunc {
 			return
 		}
 
-		// Validate token against Supabase
-		userID, err := validateSupabaseToken(c.Request.Context(), pool, token)
+		claims, err := validateSupabaseJWT(token)
 		if err != nil {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
 			c.Abort()
 			return
 		}
 
-		c.Set(string(UserIDKey), userID)
+		c.Set(string(UserIDKey), claims.Sub)
 		c.Next()
 	}
 }
 
-func validateSupabaseToken(ctx context.Context, pool *pgxpool.Pool, token string) (string, error) {
-	return "", nil
+func validateSupabaseJWT(token string) (*JWTClaims, error) {
+	parts := strings.Split(token, ".")
+	if len(parts) != 3 {
+		return nil, errors.New("invalid token format")
+	}
+
+	payload := parts[1]
+
+	payloadBytes, err := base64.RawURLEncoding.DecodeString(payload)
+	if err != nil {
+		return nil, err
+	}
+
+	var claims JWTClaims
+	if err := json.Unmarshal(payloadBytes, &claims); err != nil {
+		return nil, err
+	}
+
+	return &claims, nil
 }
 
 func GetUserID(c *gin.Context) string {

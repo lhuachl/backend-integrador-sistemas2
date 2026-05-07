@@ -18,8 +18,15 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
+// @title FLOWSTATE API
+// @version 1.0
+// @description API para gestión de tareas con Kanban + Timeboxing + IA
+// @host localhost:8080
+// @BasePath /api
 func main() {
 	if err := godotenv.Load(); err != nil {
 		log.Println("No .env file found, using environment variables")
@@ -51,7 +58,7 @@ func main() {
 	emailClient := email.NewClient(cfg.ResendAPIKey, cfg.EmailFrom)
 	emailClient.LoadTemplate("confirmation", "internal/email/templates/layouts/base.html", "internal/email/templates/confirmation.html")
 
-	authSvc := services.NewAuthService(userRepo, tokenRepo, database, emailClient)
+	authSvc := services.NewAuthService(userRepo, tokenRepo, database, emailClient, cfg.SupabaseURL, cfg.SupabaseAnonKey)
 	taskSvc := services.NewTaskService(taskRepo)
 	noteSvc := services.NewNoteService(noteRepo)
 	timeblockSvc := services.NewTimeBlockService(timeblockRepo)
@@ -63,13 +70,18 @@ func main() {
 	timeblockHandler := handlers.NewTimeBlockHandler(timeblockSvc)
 	aiHandler := handlers.NewAIHandler(aiSvc)
 
-	r := gin.Default()
+	gin.SetMode(gin.ReleaseMode)
+	r := gin.New()
+	r.Use(gin.Logger())
+	r.Use(gin.Recovery())
 
 	r.Use(middleware.CORSMiddleware(cfg.FrontendURL))
 
 	r.GET("/health", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{"status": "ok", "time": time.Now().Format(time.RFC3339)})
 	})
+
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	api := r.Group("/api")
 	{
@@ -81,7 +93,7 @@ func main() {
 		}
 
 		protected := api.Group("")
-		protected.Use(middleware.AuthMiddleware(database.Pool))
+		protected.Use(middleware.AuthMiddleware(cfg.SupabaseURL, cfg.SupabaseAnonKey))
 		{
 			tasks := protected.Group("/tasks")
 			{
@@ -113,6 +125,7 @@ func main() {
 	}
 
 	log.Printf("Server starting on :%s", port)
+	log.Printf("Swagger UI: http://localhost:%s/swagger/index.html", port)
 	if err := r.Run(":" + port); err != nil {
 		log.Fatalf("Failed to start server: %v", err)
 	}

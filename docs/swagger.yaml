@@ -1,0 +1,695 @@
+basePath: /api
+definitions:
+  models.AICommandRequest:
+    properties:
+      command:
+        type: string
+      input:
+        type: string
+    required:
+    - command
+    - input
+    type: object
+  models.AICommandResponse:
+    properties:
+      command:
+        type: string
+      result:
+        type: string
+      session_id:
+        type: string
+    type: object
+  models.AuthResponse:
+    properties:
+      expires_in:
+        type: integer
+      token:
+        type: string
+      user:
+        $ref: '#/definitions/models.User'
+    type: object
+  models.CreateTaskRequest:
+    properties:
+      column_name:
+        type: string
+      description:
+        type: string
+      estimated_minutes:
+        type: integer
+      priority:
+        type: string
+      title:
+        type: string
+    required:
+    - title
+    type: object
+  models.CreateTimeBlockRequest:
+    properties:
+      date:
+        type: string
+      end_time:
+        type: string
+      start_time:
+        type: string
+      task_id:
+        type: string
+    required:
+    - date
+    - end_time
+    - start_time
+    type: object
+  models.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    required:
+    - email
+    - password
+    type: object
+  models.Note:
+    properties:
+      content_json:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      task_id:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.SignupRequest:
+    properties:
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        minLength: 8
+        type: string
+    required:
+    - email
+    - name
+    - password
+    type: object
+  models.Task:
+    properties:
+      column_name:
+        type: string
+      created_at:
+        type: string
+      description:
+        type: string
+      estimated_minutes:
+        type: integer
+      id:
+        type: string
+      position:
+        type: integer
+      priority:
+        type: string
+      status:
+        type: string
+      title:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: string
+    type: object
+  models.TimeBlock:
+    properties:
+      completed:
+        type: boolean
+      created_at:
+        type: string
+      date:
+        type: string
+      end_time:
+        type: string
+      id:
+        type: string
+      start_time:
+        type: string
+      task_id:
+        type: string
+      user_id:
+        type: string
+    type: object
+  models.UpdateNoteRequest:
+    properties:
+      content_json:
+        type: string
+    required:
+    - content_json
+    type: object
+  models.UpdateTaskPositionRequest:
+    properties:
+      column_name:
+        type: string
+      position:
+        type: integer
+    required:
+    - column_name
+    type: object
+  models.UpdateTaskRequest:
+    properties:
+      column_name:
+        type: string
+      description:
+        type: string
+      estimated_minutes:
+        type: integer
+      position:
+        type: integer
+      priority:
+        type: string
+      status:
+        type: string
+      title:
+        type: string
+    type: object
+  models.UpdateTimeBlockRequest:
+    properties:
+      completed:
+        type: boolean
+      end_time:
+        type: string
+      start_time:
+        type: string
+      task_id:
+        type: string
+    type: object
+  models.User:
+    properties:
+      created_at:
+        type: string
+      email:
+        type: string
+      email_confirmed:
+        type: boolean
+      id:
+        type: string
+      name:
+        type: string
+      supabase_id:
+        type: string
+      updated_at:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API para gestión de tareas con Kanban + Timeboxing + IA
+  title: FLOWSTATE API
+  version: "1.0"
+paths:
+  /ai/command:
+    post:
+      consumes:
+      - application/json
+      description: Envía un comando de IA (/descomponer, /estimar, /planificar)
+      parameters:
+      - description: Comando y entrada
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.AICommandRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.AICommandResponse'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Comando de IA
+      tags:
+      - ai
+  /auth/confirm:
+    get:
+      description: Confirma el email del usuario con el token recibido
+      parameters:
+      - description: Token de confirmación
+        in: query
+        name: token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Confirmar email
+      tags:
+      - auth
+  /auth/login:
+    post:
+      consumes:
+      - application/json
+      description: Inicia sesión y devuelve JWT de Supabase
+      parameters:
+      - description: Credenciales
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.AuthResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login de usuario
+      tags:
+      - auth
+  /auth/signup:
+    post:
+      consumes:
+      - application/json
+      description: Envía email de confirmación para registrar nuevo usuario
+      parameters:
+      - description: Datos de registro
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.SignupRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Registro de usuario
+      tags:
+      - auth
+  /tasks:
+    get:
+      description: Obtiene todas las tareas del usuario autenticado
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              items:
+                $ref: '#/definitions/models.Task'
+              type: array
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Listar tareas
+      tags:
+      - tasks
+    post:
+      consumes:
+      - application/json
+      description: Crea una nueva tarea para el usuario autenticado
+      parameters:
+      - description: Datos de la tarea
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.Task'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Crear tarea
+      tags:
+      - tasks
+  /tasks/{id}:
+    delete:
+      description: Elimina una tarea por ID
+      parameters:
+      - description: ID de la tarea
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Eliminar tarea
+      tags:
+      - tasks
+    get:
+      description: Obtiene una tarea específica por ID
+      parameters:
+      - description: ID de la tarea
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Task'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Obtener tarea
+      tags:
+      - tasks
+    put:
+      consumes:
+      - application/json
+      description: Actualiza una tarea existente
+      parameters:
+      - description: ID de la tarea
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Datos a actualizar
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateTaskRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Task'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Actualizar tarea
+      tags:
+      - tasks
+  /tasks/{id}/notes:
+    get:
+      description: Obtiene la nota asociada a una tarea
+      parameters:
+      - description: ID de la tarea
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Note'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Obtener nota
+      tags:
+      - notes
+    put:
+      consumes:
+      - application/json
+      description: Guarda o actualiza el contenido de la nota de una tarea
+      parameters:
+      - description: ID de la tarea
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Contenido JSON de la nota
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateNoteRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Note'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Guardar nota
+      tags:
+      - notes
+  /tasks/{id}/position:
+    patch:
+      consumes:
+      - application/json
+      description: Actualiza la posición y columna de una tarea (drag & drop)
+      parameters:
+      - description: ID de la tarea
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Nueva posición
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateTaskPositionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Mover tarea
+      tags:
+      - tasks
+  /timeblocks:
+    get:
+      description: Obtiene los bloques de tiempo del usuario, opcionalmente filtrados
+        por fecha
+      parameters:
+      - description: Filtrar por fecha (YYYY-MM-DD)
+        in: query
+        name: date
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              items:
+                $ref: '#/definitions/models.TimeBlock'
+              type: array
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Listar bloques de tiempo
+      tags:
+      - timeblocks
+    post:
+      consumes:
+      - application/json
+      description: Crea un nuevo bloque de tiempo para el usuario
+      parameters:
+      - description: Datos del bloque
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.CreateTimeBlockRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/models.TimeBlock'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Crear bloque de tiempo
+      tags:
+      - timeblocks
+  /timeblocks/{id}:
+    delete:
+      description: Elimina un bloque de tiempo por ID
+      parameters:
+      - description: ID del bloque
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Eliminar bloque de tiempo
+      tags:
+      - timeblocks
+    put:
+      consumes:
+      - application/json
+      description: Actualiza un bloque de tiempo existente
+      parameters:
+      - description: ID del bloque
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Datos a actualizar
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdateTimeBlockRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.TimeBlock'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Actualizar bloque de tiempo
+      tags:
+      - timeblocks
+swagger: "2.0"

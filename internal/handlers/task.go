@@ -19,6 +19,14 @@ func NewTaskHandler(svc *services.TaskService) *TaskHandler {
 	return &TaskHandler{svc: svc}
 }
 
+// @Summary Listar tareas
+// @Description Obtiene todas las tareas del usuario autenticado
+// @Tags tasks
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} map[string][]models.Task
+// @Failure 401 {object} map[string]string
+// @Router /tasks [get]
 func (h *TaskHandler) List(c *gin.Context) {
 	userID := middleware.GetUserID(c)
 	if userID == "" {
@@ -41,6 +49,15 @@ func (h *TaskHandler) List(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"tasks": tasks})
 }
 
+// @Summary Obtener tarea
+// @Description Obtiene una tarea específica por ID
+// @Tags tasks
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "ID de la tarea"
+// @Success 200 {object} models.Task
+// @Failure 404 {object} map[string]string
+// @Router /tasks/{id} [get]
 func (h *TaskHandler) Get(c *gin.Context) {
 	id := c.Param("id")
 	uid, err := uuid.Parse(id)
@@ -58,6 +75,16 @@ func (h *TaskHandler) Get(c *gin.Context) {
 	c.JSON(http.StatusOK, task)
 }
 
+// @Summary Crear tarea
+// @Description Crea una nueva tarea para el usuario autenticado
+// @Tags tasks
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param body body models.CreateTaskRequest true "Datos de la tarea"
+// @Success 201 {object} models.Task
+// @Failure 400 {object} map[string]string
+// @Router /tasks [post]
 func (h *TaskHandler) Create(c *gin.Context) {
 	var req models.CreateTaskRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -81,6 +108,17 @@ func (h *TaskHandler) Create(c *gin.Context) {
 	c.JSON(http.StatusCreated, task)
 }
 
+// @Summary Actualizar tarea
+// @Description Actualiza una tarea existente
+// @Tags tasks
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "ID de la tarea"
+// @Param body body models.UpdateTaskRequest true "Datos a actualizar"
+// @Success 200 {object} models.Task
+// @Failure 400 {object} map[string]string
+// @Router /tasks/{id} [put]
 func (h *TaskHandler) Update(c *gin.Context) {
 	id := c.Param("id")
 	uid, err := uuid.Parse(id)
@@ -104,6 +142,17 @@ func (h *TaskHandler) Update(c *gin.Context) {
 	c.JSON(http.StatusOK, task)
 }
 
+// @Summary Mover tarea
+// @Description Actualiza la posición y columna de una tarea (drag & drop)
+// @Tags tasks
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "ID de la tarea"
+// @Param body body models.UpdateTaskPositionRequest true "Nueva posición"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Router /tasks/{id}/position [patch]
 func (h *TaskHandler) UpdatePosition(c *gin.Context) {
 	id := c.Param("id")
 	uid, err := uuid.Parse(id)
@@ -126,6 +175,15 @@ func (h *TaskHandler) UpdatePosition(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "position updated"})
 }
 
+// @Summary Eliminar tarea
+// @Description Elimina una tarea por ID
+// @Tags tasks
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "ID de la tarea"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Router /tasks/{id} [delete]
 func (h *TaskHandler) Delete(c *gin.Context) {
 	id := c.Param("id")
 	uid, err := uuid.Parse(id)
