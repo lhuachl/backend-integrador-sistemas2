@@ -11,6 +11,17 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+const countAISessionsByUser = `-- name: CountAISessionsByUser :one
+SELECT COUNT(*) as count FROM ai_sessions WHERE user_id = $1
+`
+
+func (q *Queries) CountAISessionsByUser(ctx context.Context, userID pgtype.UUID) (int64, error) {
+	row := q.db.QueryRow(ctx, countAISessionsByUser, userID)
+	var count int64
+	err := row.Scan(&count)
+	return count, err
+}
+
 const createAISession = `-- name: CreateAISession :one
 INSERT INTO ai_sessions (user_id, command, input_summary, output_summary)
 VALUES ($1, $2, $3, $4)
@@ -31,6 +42,24 @@ func (q *Queries) CreateAISession(ctx context.Context, arg CreateAISessionParams
 		arg.InputSummary,
 		arg.OutputSummary,
 	)
+	var i AiSession
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.Command,
+		&i.InputSummary,
+		&i.OutputSummary,
+		&i.CreatedAt,
+	)
+	return i, err
+}
+
+const getAISessionByID = `-- name: GetAISessionByID :one
+SELECT id, user_id, command, input_summary, output_summary, created_at FROM ai_sessions WHERE id = $1
+`
+
+func (q *Queries) GetAISessionByID(ctx context.Context, id pgtype.UUID) (AiSession, error) {
+	row := q.db.QueryRow(ctx, getAISessionByID, id)
 	var i AiSession
 	err := row.Scan(
 		&i.ID,
@@ -72,4 +101,55 @@ func (q *Queries) GetAISessionsByUser(ctx context.Context, userID pgtype.UUID) (
 		return nil, err
 	}
 	return items, nil
+}
+
+const getRecentSessionsForContext = `-- name: GetRecentSessionsForContext :many
+SELECT id, user_id, command, input_summary, output_summary, created_at FROM ai_sessions
+WHERE user_id = $1
+ORDER BY created_at DESC
+LIMIT 5
+`
+
+func (q *Queries) GetRecentSessionsForContext(ctx context.Context, userID pgtype.UUID) ([]AiSession, error) {
+	rows, err := q.db.Query(ctx, getRecentSessionsForContext, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []AiSession
+	for rows.Next() {
+		var i AiSession
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Command,
+			&i.InputSummary,
+			&i.OutputSummary,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const updateAISession = `-- name: UpdateAISession :exec
+UPDATE ai_sessions
+SET input_summary = $2, output_summary = $3
+WHERE id = $1
+`
+
+type UpdateAISessionParams struct {
+	ID            pgtype.UUID
+	InputSummary  pgtype.Text
+	OutputSummary pgtype.Text
+}
+
+func (q *Queries) UpdateAISession(ctx context.Context, arg UpdateAISessionParams) error {
+	_, err := q.db.Exec(ctx, updateAISession, arg.ID, arg.InputSummary, arg.OutputSummary)
+	return err
 }

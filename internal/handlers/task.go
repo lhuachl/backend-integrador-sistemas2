@@ -19,8 +19,8 @@ func NewTaskHandler(svc *services.TaskService) *TaskHandler {
 	return &TaskHandler{svc: svc}
 }
 
-// @Summary Listar tareas
-// @Description Obtiene todas las tareas del usuario autenticado
+// @Summary List all tasks
+// @Description Returns all tasks for the authenticated user
 // @Tags tasks
 // @Produce json
 // @Security BearerAuth
@@ -49,41 +49,60 @@ func (h *TaskHandler) List(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"tasks": tasks})
 }
 
-// @Summary Obtener tarea
-// @Description Obtiene una tarea específica por ID
+// @Summary Get task by ID
+// @Description Returns a specific task by its ID
 // @Tags tasks
 // @Produce json
 // @Security BearerAuth
-// @Param id path string true "ID de la tarea"
+// @Param id path string true "Task ID"
 // @Success 200 {object} models.Task
+// @Failure 403 {object} map[string]string
 // @Failure 404 {object} map[string]string
 // @Router /tasks/{id} [get]
 func (h *TaskHandler) Get(c *gin.Context) {
+	userIDStr := middleware.GetUserID(c)
+	if userIDStr == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
+		return
+	}
+
 	id := c.Param("id")
-	uid, err := uuid.Parse(id)
+	taskID, err := uuid.Parse(id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
 	}
 
-	task, err := h.svc.GetByID(c.Request.Context(), uid)
+	task, err := h.svc.GetByID(c.Request.Context(), taskID)
 	if err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": "task not found"})
+		return
+	}
+
+	if task.UserID != userID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
 		return
 	}
 
 	c.JSON(http.StatusOK, task)
 }
 
-// @Summary Crear tarea
-// @Description Crea una nueva tarea para el usuario autenticado
+// @Summary Create new task
+// @Description Creates a task in the specified Kanban column. Default column is "backlog". Priority options: low, medium, high.
 // @Tags tasks
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param body body models.CreateTaskRequest true "Datos de la tarea"
+// @Param body body models.CreateTaskRequest true "Task data"
 // @Success 201 {object} models.Task
 // @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
 // @Router /tasks [post]
 func (h *TaskHandler) Create(c *gin.Context) {
 	var req models.CreateTaskRequest
@@ -108,22 +127,47 @@ func (h *TaskHandler) Create(c *gin.Context) {
 	c.JSON(http.StatusCreated, task)
 }
 
-// @Summary Actualizar tarea
-// @Description Actualiza una tarea existente
+// @Summary Update task
+// @Description Updates an existing task with new data
 // @Tags tasks
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path string true "ID de la tarea"
-// @Param body body models.UpdateTaskRequest true "Datos a actualizar"
+// @Param id path string true "Task ID"
+// @Param body body models.UpdateTaskRequest true "Task data to update"
 // @Success 200 {object} models.Task
 // @Failure 400 {object} map[string]string
+// @Failure 403 {object} map[string]string
+// @Failure 404 {object} map[string]string
 // @Router /tasks/{id} [put]
 func (h *TaskHandler) Update(c *gin.Context) {
+	userIDStr := middleware.GetUserID(c)
+	if userIDStr == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
+		return
+	}
+
 	id := c.Param("id")
-	uid, err := uuid.Parse(id)
+	taskID, err := uuid.Parse(id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+
+	existingTask, err := h.svc.GetByID(c.Request.Context(), taskID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "task not found"})
+		return
+	}
+
+	if existingTask.UserID != userID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
 		return
 	}
 
@@ -133,7 +177,7 @@ func (h *TaskHandler) Update(c *gin.Context) {
 		return
 	}
 
-	task, err := h.svc.Update(c.Request.Context(), uid, &req)
+	task, err := h.svc.Update(c.Request.Context(), taskID, &req)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -142,22 +186,47 @@ func (h *TaskHandler) Update(c *gin.Context) {
 	c.JSON(http.StatusOK, task)
 }
 
-// @Summary Mover tarea
-// @Description Actualiza la posición y columna de una tarea (drag & drop)
+// @Summary Move task
+// @Description Updates task position and column (drag & drop)
 // @Tags tasks
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param id path string true "ID de la tarea"
-// @Param body body models.UpdateTaskPositionRequest true "Nueva posición"
+// @Param id path string true "Task ID"
+// @Param body body models.UpdateTaskPositionRequest true "New position data"
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string
+// @Failure 403 {object} map[string]string
+// @Failure 404 {object} map[string]string
 // @Router /tasks/{id}/position [patch]
 func (h *TaskHandler) UpdatePosition(c *gin.Context) {
+	userIDStr := middleware.GetUserID(c)
+	if userIDStr == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
+		return
+	}
+
 	id := c.Param("id")
-	uid, err := uuid.Parse(id)
+	taskID, err := uuid.Parse(id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+
+	existingTask, err := h.svc.GetByID(c.Request.Context(), taskID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "task not found"})
+		return
+	}
+
+	if existingTask.UserID != userID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
 		return
 	}
 
@@ -167,7 +236,7 @@ func (h *TaskHandler) UpdatePosition(c *gin.Context) {
 		return
 	}
 
-	if err := h.svc.UpdatePosition(c.Request.Context(), uid, &req); err != nil {
+	if err := h.svc.UpdatePosition(c.Request.Context(), taskID, &req); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -175,27 +244,102 @@ func (h *TaskHandler) UpdatePosition(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"message": "position updated"})
 }
 
-// @Summary Eliminar tarea
-// @Description Elimina una tarea por ID
+// @Summary Delete task
+// @Description Deletes a task by ID
 // @Tags tasks
 // @Produce json
 // @Security BearerAuth
-// @Param id path string true "ID de la tarea"
+// @Param id path string true "Task ID"
 // @Success 200 {object} map[string]string
 // @Failure 400 {object} map[string]string
+// @Failure 403 {object} map[string]string
+// @Failure 404 {object} map[string]string
 // @Router /tasks/{id} [delete]
 func (h *TaskHandler) Delete(c *gin.Context) {
+	userIDStr := middleware.GetUserID(c)
+	if userIDStr == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
+		return
+	}
+
 	id := c.Param("id")
-	uid, err := uuid.Parse(id)
+	taskID, err := uuid.Parse(id)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
 		return
 	}
 
-	if err := h.svc.Delete(c.Request.Context(), uid); err != nil {
+	existingTask, err := h.svc.GetByID(c.Request.Context(), taskID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "task not found"})
+		return
+	}
+
+	if existingTask.UserID != userID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
+		return
+	}
+
+	if err := h.svc.Delete(c.Request.Context(), taskID); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "task deleted"})
+}
+
+// @Summary Complete task
+// @Description Marks a task as completed by moving it to the "done" column. Triggers any associated AI workflow notifications.
+// @Tags tasks
+// @Produce json
+// @Security BearerAuth
+// @Param id path string true "ID of the task"
+// @Success 200 {object} models.Task
+// @Failure 403 {object} map[string]string "Access denied"
+// @Failure 404 {object} map[string]string "Task not found"
+// @Router /tasks/{id}/complete [post]
+func (h *TaskHandler) Complete(c *gin.Context) {
+	userIDStr := middleware.GetUserID(c)
+	if userIDStr == "" {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		return
+	}
+
+	userID, err := uuid.Parse(userIDStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid user id"})
+		return
+	}
+
+	id := c.Param("id")
+	taskID, err := uuid.Parse(id)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "invalid id"})
+		return
+	}
+
+	existingTask, err := h.svc.GetByID(c.Request.Context(), taskID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "task not found"})
+		return
+	}
+
+	if existingTask.UserID != userID {
+		c.JSON(http.StatusForbidden, gin.H{"error": "access denied"})
+		return
+	}
+
+	task, err := h.svc.Complete(c.Request.Context(), taskID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, task)
 }

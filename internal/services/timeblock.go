@@ -25,6 +25,10 @@ func (s *TimeBlockService) GetByUser(ctx context.Context, userID uuid.UUID) ([]*
 	return s.repo.GetByUser(ctx, userID)
 }
 
+func (s *TimeBlockService) GetByID(ctx context.Context, id uuid.UUID) (*models.TimeBlock, error) {
+	return s.repo.GetByID(ctx, id)
+}
+
 func (s *TimeBlockService) Create(ctx context.Context, userID uuid.UUID, req *models.CreateTimeBlockRequest) (*models.TimeBlock, error) {
 	var taskID *uuid.UUID
 	if req.TaskID != "" {
@@ -49,4 +53,16 @@ func (s *TimeBlockService) Update(ctx context.Context, id uuid.UUID, req *models
 
 func (s *TimeBlockService) Delete(ctx context.Context, id uuid.UUID) error {
 	return s.repo.Delete(ctx, id)
+}
+
+func (s *TimeBlockService) StartBlock(ctx context.Context, id uuid.UUID) (*models.TimeBlock, error) {
+	return s.repo.GetByID(ctx, id)
+}
+
+func (s *TimeBlockService) CompleteBlock(ctx context.Context, id uuid.UUID) (*models.TimeBlock, error) {
+	err := s.repo.MarkCompleted(ctx, id)
+	if err != nil {
+		return nil, err
+	}
+	return s.repo.GetByID(ctx, id)
 }

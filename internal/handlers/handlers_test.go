@@ -10,6 +10,7 @@ import (
 	"rest-api/pkg/models"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -285,7 +286,7 @@ func TestAIHandler_Command(t *testing.T) {
 		c.JSON(http.StatusOK, models.AICommandResponse{
 			Command:   req.Command,
 			Result:    "AI response",
-			SessionID: "session-123",
+			SessionID: uuid.MustParse("00000000-0000-0000-0000-000000000001"),
 		})
 	})
 

@@ -1,5 +1,7 @@
 package models
 
+import "github.com/google/uuid"
+
 type UpdateNoteRequest struct {
 	ContentJSON string `json:"content_json" binding:"required"`
 }
@@ -10,7 +12,7 @@ type AICommandRequest struct {
 }
 
 type AICommandResponse struct {
-	Command   string `json:"command"`
-	Result    string `json:"result"`
-	SessionID string `json:"session_id"`
+	Command   string    `json:"command"`
+	Result    string    `json:"result"`
+	SessionID uuid.UUID `json:"session_id"`
 }

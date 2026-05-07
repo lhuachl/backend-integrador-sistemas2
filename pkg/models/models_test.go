@@ -6,6 +6,7 @@ import (
 
 	"rest-api/pkg/models"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -131,10 +132,11 @@ func TestAICommandRequest(t *testing.T) {
 }
 
 func TestAICommandResponse(t *testing.T) {
+	sessionID := uuid.MustParse("00000000-0000-0000-0000-000000000001")
 	resp := models.AICommandResponse{
 		Command:   "/descomponer",
 		Result:    "Subtasks created",
-		SessionID: "session-123",
+		SessionID: sessionID,
 	}
 
 	data, err := json.Marshal(resp)
@@ -145,7 +147,7 @@ func TestAICommandResponse(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, "/descomponer", decoded["command"])
 	assert.Equal(t, "Subtasks created", decoded["result"])
-	assert.Equal(t, "session-123", decoded["session_id"])
+	assert.Equal(t, sessionID.String(), decoded["session_id"])
 }
 
 func TestNote_ContentJSON(t *testing.T) {

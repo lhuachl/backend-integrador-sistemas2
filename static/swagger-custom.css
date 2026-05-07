@@ -1,0 +1,290 @@
+/* FLOWSTATE - Synthwave Swagger Theme Override */
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+
+/* Root Variables */
+:root {
+    --neon-pink: #ff2a6d;
+    --neon-cyan: #05d9e8;
+    --neon-yellow: #f9f871;
+    --neon-purple: #9d4edd;
+    --dark-bg: #0d0221;
+}
+
+/* Background & Body */
+body {
+    background: var(--dark-bg) !important;
+    background-image:
+        linear-gradient(transparent 0%, rgba(5, 217, 232, 0.05) 50%, transparent 100%) !important;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif !important;
+}
+
+.swagger-ui .topbar {
+    background: linear-gradient(90deg, #0d0221, #1a0a2e, #0d0221) !important;
+    border-bottom: 2px solid var(--neon-pink) !important;
+    padding: 15px 20px !important;
+}
+
+.swagger-ui .topbar .topbar-wrapper {
+    background: transparent !important;
+}
+
+.swagger-ui .topbar .topbar-wrapper .topbar-left span {
+    color: var(--neon-pink) !important;
+    font-family: 'Orbitron', monospace !important;
+    font-size: 1.5rem !important;
+    font-weight: 700 !important;
+    text-shadow: 0 0 10px var(--neon-pink) !important;
+}
+
+.swagger-ui .info {
+    margin: 30px 0 !important;
+}
+
+.swagger-ui .info .title {
+    color: var(--neon-cyan) !important;
+    font-family: 'Orbitron', monospace !important;
+    font-size: 2rem !important;
+    text-shadow: 0 0 15px var(--neon-cyan) !important;
+}
+
+.swagger-ui .info .description {
+    color: #d0d0d0 !important;
+    font-size: 1rem !important;
+}
+
+.swagger-ui .scheme-container {
+    background: linear-gradient(135deg, #1a0a2e 0%, #0d0221 100%) !important;
+    border: 1px solid var(--neon-purple) !important;
+    border-radius: 8px !important;
+    box-shadow: 0 0 20px rgba(157, 78, 221, 0.3) !important;
+    padding: 20px !important;
+}
+
+.swagger-ui .scheme-container .schemes {
+    gap: 15px !important;
+}
+
+.swagger-ui .scheme-container .schemes > label {
+    color: var(--neon-cyan) !important;
+    font-family: 'Orbitron', monospace !important;
+}
+
+/* Operation Blocks */
+.swagger-ui .opblock {
+    background: rgba(26, 10, 46, 0.9) !important;
+    border: 1px solid var(--neon-purple) !important;
+    border-radius: 8px !important;
+    margin: 15px 0 !important;
+    box-shadow: 0 0 10px rgba(157, 78, 221, 0.2) !important;
+    transition: all 0.3s ease !important;
+}
+
+.swagger-ui .opblock:hover {
+    border-color: var(--neon-cyan) !important;
+    box-shadow: 0 0 25px rgba(5, 217, 232, 0.4) !important;
+    transform: translateX(5px) !important;
+}
+
+.swagger-ui .opblock .opblock-summary {
+    cursor: pointer !important;
+    padding: 15px !important;
+}
+
+.swagger-ui .opblock .opblock-summary-method {
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+    padding: 8px 12px !important;
+    border-radius: 4px !important;
+    min-width: 80px !important;
+}
+
+/* HTTP Method Colors */
+.swagger-ui .opblock.post .opblock-summary-method {
+    background: var(--neon-cyan) !important;
+    color: #0d0221 !important;
+    box-shadow: 0 0 10px var(--neon-cyan) !important;
+}
+
+.swagger-ui .opblock.get .opblock-summary-method {
+    background: var(--neon-cyan) !important;
+    color: #0d0221 !important;
+    box-shadow: 0 0 10px var(--neon-cyan) !important;
+}
+
+.swagger-ui .opblock.put .opblock-summary-method {
+    background: var(--neon-yellow) !important;
+    color: #0d0221 !important;
+    box-shadow: 0 0 10px var(--neon-yellow) !important;
+}
+
+.swagger-ui .opblock.delete .opblock-summary-method {
+    background: #ff0844 !important;
+    color: white !important;
+    box-shadow: 0 0 10px #ff0844 !important;
+}
+
+.swagger-ui .opblock.patch .opblock-summary-method {
+    background: var(--neon-purple) !important;
+    color: white !important;
+    box-shadow: 0 0 10px var(--neon-purple) !important;
+}
+
+.swagger-ui .opblock-options .opblock-summary-method {
+    background: var(--neon-pink) !important;
+    color: white !important;
+}
+
+.swagger-ui .opblock .opblock-summary-path {
+    color: var(--neon-cyan) !important;
+    font-weight: 600 !important;
+}
+
+.swagger-ui .opblock .opblock-summary-description {
+    color: #b0b0b0 !important;
+}
+
+/* Tabs */
+.swagger-ui .tab-item {
+    color: var(--neon-cyan) !important;
+    font-weight: 600 !important;
+}
+
+.swagger-ui .tab-item.active {
+    border-bottom: 3px solid var(--neon-pink) !important;
+    color: var(--neon-pink) !important;
+}
+
+/* Buttons */
+.swagger-ui .btn {
+    border-radius: 5px !important;
+    transition: all 0.3s ease !important;
+}
+
+.swagger-ui .btn:not(.disabled):hover {
+    transform: scale(1.05) !important;
+    box-shadow: 0 0 15px var(--neon-pink) !important;
+}
+
+.swagger-ui .btn.execute {
+    background: linear-gradient(135deg, var(--neon-cyan), var(--neon-pink)) !important;
+    border: none !important;
+    color: white !important;
+    font-weight: bold !important;
+}
+
+/* Inputs */
+.swagger-ui input,
+.swagger-ui textarea,
+.swagger-ui select,
+.swagger-ui .json-editor-ctr {
+    background: rgba(26, 10, 46, 0.9) !important;
+    border: 1px solid var(--neon-purple) !important;
+    color: var(--neon-cyan) !important;
+    border-radius: 5px !important;
+}
+
+.swagger-ui input:focus,
+.swagger-ui textarea:focus,
+.swagger-ui select:focus {
+    border-color: var(--neon-cyan) !important;
+    box-shadow: 0 0 15px var(--neon-cyan) !important;
+    outline: none !important;
+}
+
+/* Models */
+.swagger-ui .model {
+    color: var(--neon-yellow) !important;
+}
+
+.swagger-ui .model-title {
+    color: var(--neon-cyan) !important;
+    font-family: 'Orbitron', monospace !important;
+}
+
+.swagger-ui .model-title__text {
+    color: var(--neon-yellow) !important;
+}
+
+.swagger-ui .model-title:hover {
+    text-shadow: 0 0 10px var(--neon-cyan) !important;
+}
+
+/* Response Styling */
+.swagger-ui .response-col_status {
+    color: var(--neon-yellow) !important;
+    font-weight: bold !important;
+}
+
+.swagger-ui .response-col_description {
+    color: #d0d0d0 !important;
+}
+
+/* Parameter styling */
+.swagger-ui .parameter__name {
+    color: var(--neon-pink) !important;
+    font-weight: bold !important;
+}
+
+.swagger-ui .parameter__type {
+    color: var(--neon-purple) !important;
+}
+
+/* Loading */
+.swagger-ui .loading-container {
+    background: var(--dark-bg) !important;
+}
+
+.swagger-ui .loading-container .loading:after {
+    border: 3px solid var(--neon-pink) !important;
+    border-top-color: transparent !important;
+}
+
+/* Copy button */
+.swagger-ui .opblock-section-header .view-line-link {
+    color: var(--neon-cyan) !important;
+}
+
+/* Authorization Modal */
+.swagger-ui .dialog-ux .modal-ux {
+    background: var(--dark-bg) !important;
+    border: 2px solid var(--neon-pink) !important;
+    border-radius: 10px !important;
+}
+
+.swagger-ui .dialog-ux .modal-ux-header h3 {
+    color: var(--neon-pink) !important;
+    font-family: 'Orbitron', monospace !important;
+}
+
+/* Highlighted code */
+.swagger-ui code {
+    background: rgba(26, 10, 46, 0.9) !important;
+    border-radius: 3px !important;
+    color: var(--neon-yellow) !important;
+}
+
+.swagger-ui .curl-command {
+    background: rgba(26, 10, 46, 0.9) !important;
+    border: 1px solid var(--neon-purple) !important;
+    border-radius: 5px !important;
+    color: var(--neon-cyan) !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 10px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--dark-bg);
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(var(--neon-pink), var(--neon-purple));
+    border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(var(--neon-cyan), var(--neon-pink));
+}

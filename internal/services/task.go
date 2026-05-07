@@ -21,6 +21,10 @@ func (s *TaskService) GetByUser(ctx context.Context, userID uuid.UUID) ([]*model
 	return s.repo.GetByUser(ctx, userID)
 }
 
+func (s *TaskService) GetByColumn(ctx context.Context, userID uuid.UUID, column string) ([]*models.Task, error) {
+	return s.repo.GetByColumn(ctx, userID, column)
+}
+
 func (s *TaskService) GetByID(ctx context.Context, id uuid.UUID) (*models.Task, error) {
 	return s.repo.GetByID(ctx, id)
 }
@@ -47,4 +51,8 @@ func (s *TaskService) UpdatePosition(ctx context.Context, id uuid.UUID, req *mod
 
 func (s *TaskService) Delete(ctx context.Context, id uuid.UUID) error {
 	return s.repo.Delete(ctx, id)
+}
+
+func (s *TaskService) Complete(ctx context.Context, id uuid.UUID) (*models.Task, error) {
+	return s.repo.Update(ctx, id, "", "", "completed", "", "", nil, 0)
 }

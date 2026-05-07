@@ -22,7 +22,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Envía un comando de IA (/descomponer, /estimar, /planificar)",
+                "description": "Executes AI commands for workflow automation:\n- /descomponer: Break a task into subtasks\n- /estimar: Estimate time for a task\n- /planificar: Create a daily plan\nMaintains conversation context (last 5 sessions) for personalized responses.\nAuto-compacts context when 6+ sessions accumulated.",
                 "consumes": [
                     "application/json"
                 ],
@@ -32,10 +32,10 @@ const docTemplate = `{
                 "tags": [
                     "ai"
                 ],
-                "summary": "Comando de IA",
+                "summary": "AI productivity assistant",
                 "parameters": [
                     {
-                        "description": "Comando y entrada",
+                        "description": "AI command and input",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -60,6 +60,104 @@ const docTemplate = `{
                             }
                         }
                     },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ai/sessions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Obtiene el historial de sesiones de IA del usuario",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ai"
+                ],
+                "summary": "Listar sesiones de IA",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/models.AISession"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/ai/sessions/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Obtiene una sesión específica por ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "ai"
+                ],
+                "summary": "Obtener sesión de IA",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Session ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.AISession"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
                     "500": {
                         "description": "Internal Server Error",
                         "schema": {
@@ -74,18 +172,18 @@ const docTemplate = `{
         },
         "/auth/confirm": {
             "get": {
-                "description": "Confirma el email del usuario con el token recibido",
+                "description": "Confirms user email with the provided token",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "auth"
                 ],
-                "summary": "Confirmar email",
+                "summary": "Confirm email",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Token de confirmación",
+                        "description": "Confirmation token",
                         "name": "token",
                         "in": "query",
                         "required": true
@@ -115,7 +213,7 @@ const docTemplate = `{
         },
         "/auth/login": {
             "post": {
-                "description": "Inicia sesión y devuelve JWT de Supabase",
+                "description": "Authenticates user and returns Supabase JWT",
                 "consumes": [
                     "application/json"
                 ],
@@ -125,10 +223,10 @@ const docTemplate = `{
                 "tags": [
                     "auth"
                 ],
-                "summary": "Login de usuario",
+                "summary": "User login",
                 "parameters": [
                     {
-                        "description": "Credenciales",
+                        "description": "Credentials",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -156,9 +254,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/me": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns the profile of the currently authenticated user based on JWT",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "auth"
+                ],
+                "summary": "Get current user profile",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.User"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/auth/signup": {
             "post": {
-                "description": "Envía email de confirmación para registrar nuevo usuario",
+                "description": "Creates a new user account and sends confirmation email",
                 "consumes": [
                     "application/json"
                 ],
@@ -168,10 +300,10 @@ const docTemplate = `{
                 "tags": [
                     "auth"
                 ],
-                "summary": "Registro de usuario",
+                "summary": "Register new user",
                 "parameters": [
                     {
-                        "description": "Datos de registro",
+                        "description": "Registration data",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -202,6 +334,74 @@ const docTemplate = `{
                 }
             }
         },
+        "/dashboard": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns aggregated statistics: tasks grouped by status and priority, column summaries with task counts. Use to power dashboard visualizations and productivity analytics.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "dashboard"
+                ],
+                "summary": "Kanban board overview",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.DashboardStats"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/focus": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns focus time analytics: total planned minutes, completed minutes, and remaining minutes. Use to display daily focus progress and productivity metrics.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "planning"
+                ],
+                "summary": "Focus time metrics for today",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.FocusSummary"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/tasks": {
             "get": {
                 "security": [
@@ -209,14 +409,14 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Obtiene todas las tareas del usuario autenticado",
+                "description": "Returns all tasks for the authenticated user",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "tasks"
                 ],
-                "summary": "Listar tareas",
+                "summary": "List all tasks",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -247,7 +447,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Crea una nueva tarea para el usuario autenticado",
+                "description": "Creates a task in the specified Kanban column. Default column is \"backlog\". Priority options: low, medium, high.",
                 "consumes": [
                     "application/json"
                 ],
@@ -257,10 +457,10 @@ const docTemplate = `{
                 "tags": [
                     "tasks"
                 ],
-                "summary": "Crear tarea",
+                "summary": "Create new task",
                 "parameters": [
                     {
-                        "description": "Datos de la tarea",
+                        "description": "Task data",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -284,6 +484,15 @@ const docTemplate = `{
                                 "type": "string"
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     }
                 }
             }
@@ -295,18 +504,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Obtiene una tarea específica por ID",
+                "description": "Returns a specific task by its ID",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "tasks"
                 ],
-                "summary": "Obtener tarea",
+                "summary": "Get task by ID",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID de la tarea",
+                        "description": "Task ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -317,6 +526,15 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.Task"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     },
                     "404": {
@@ -336,7 +554,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Actualiza una tarea existente",
+                "description": "Updates an existing task with new data",
                 "consumes": [
                     "application/json"
                 ],
@@ -346,17 +564,17 @@ const docTemplate = `{
                 "tags": [
                     "tasks"
                 ],
-                "summary": "Actualizar tarea",
+                "summary": "Update task",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID de la tarea",
+                        "description": "Task ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Datos a actualizar",
+                        "description": "Task data to update",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -380,6 +598,24 @@ const docTemplate = `{
                                 "type": "string"
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     }
                 }
             },
@@ -389,18 +625,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Elimina una tarea por ID",
+                "description": "Deletes a task by ID",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "tasks"
                 ],
-                "summary": "Eliminar tarea",
+                "summary": "Delete task",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID de la tarea",
+                        "description": "Task ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -424,29 +660,99 @@ const docTemplate = `{
                                 "type": "string"
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     }
                 }
             }
         },
-        "/tasks/{id}/notes": {
+        "/tasks/{id}/complete": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Marks a task as completed by moving it to the \"done\" column. Triggers any associated AI workflow notifications.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "tasks"
+                ],
+                "summary": "Complete task",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "ID of the task",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.Task"
+                        }
+                    },
+                    "403": {
+                        "description": "Access denied",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Task not found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/tasks/{id}/note": {
             "get": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Obtiene la nota asociada a una tarea",
+                "description": "Returns the note associated with a task (singleton per task). Returns empty note if none exists.",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "notes"
                 ],
-                "summary": "Obtener nota",
+                "summary": "Get task note",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID de la tarea",
+                        "description": "Task ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -457,6 +763,15 @@ const docTemplate = `{
                         "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/models.Note"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
                         }
                     },
                     "404": {
@@ -476,7 +791,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Guarda o actualiza el contenido de la nota de una tarea",
+                "description": "Creates or replaces the note for a task (idempotent PUT)",
                 "consumes": [
                     "application/json"
                 ],
@@ -486,17 +801,17 @@ const docTemplate = `{
                 "tags": [
                     "notes"
                 ],
-                "summary": "Guardar nota",
+                "summary": "Save task note",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID de la tarea",
+                        "description": "Task ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Contenido JSON de la nota",
+                        "description": "Note content JSON",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -520,6 +835,15 @@ const docTemplate = `{
                                 "type": "string"
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     }
                 }
             }
@@ -531,7 +855,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Actualiza la posición y columna de una tarea (drag \u0026 drop)",
+                "description": "Updates task position and column (drag \u0026 drop)",
                 "consumes": [
                     "application/json"
                 ],
@@ -541,17 +865,17 @@ const docTemplate = `{
                 "tags": [
                     "tasks"
                 ],
-                "summary": "Mover tarea",
+                "summary": "Move task",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID de la tarea",
+                        "description": "Task ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Nueva posición",
+                        "description": "New position data",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -578,6 +902,24 @@ const docTemplate = `{
                                 "type": "string"
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     }
                 }
             }
@@ -589,18 +931,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Obtiene los bloques de tiempo del usuario, opcionalmente filtrados por fecha",
+                "description": "Returns user's time blocks, optionally filtered by date",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "timeblocks"
                 ],
-                "summary": "Listar bloques de tiempo",
+                "summary": "List time blocks",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "Filtrar por fecha (YYYY-MM-DD)",
+                        "description": "Filter by date (YYYY-MM-DD)",
                         "name": "date",
                         "in": "query"
                     }
@@ -635,7 +977,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Crea un nuevo bloque de tiempo para el usuario",
+                "description": "Creates a new time block for the user",
                 "consumes": [
                     "application/json"
                 ],
@@ -645,10 +987,10 @@ const docTemplate = `{
                 "tags": [
                     "timeblocks"
                 ],
-                "summary": "Crear bloque de tiempo",
+                "summary": "Create time block",
                 "parameters": [
                     {
-                        "description": "Datos del bloque",
+                        "description": "Time block data",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -672,6 +1014,50 @@ const docTemplate = `{
                                 "type": "string"
                             }
                         }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/timeblocks/today": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns today's time blocks for the authenticated user. Includes completed blocks with time metrics.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "timeblocks"
+                ],
+                "summary": "Get today's time blocks",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     }
                 }
             }
@@ -683,7 +1069,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Actualiza un bloque de tiempo existente",
+                "description": "Updates an existing time block",
                 "consumes": [
                     "application/json"
                 ],
@@ -693,17 +1079,17 @@ const docTemplate = `{
                 "tags": [
                     "timeblocks"
                 ],
-                "summary": "Actualizar bloque de tiempo",
+                "summary": "Update time block",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID del bloque",
+                        "description": "Time block ID",
                         "name": "id",
                         "in": "path",
                         "required": true
                     },
                     {
-                        "description": "Datos a actualizar",
+                        "description": "Data to update",
                         "name": "body",
                         "in": "body",
                         "required": true,
@@ -727,6 +1113,24 @@ const docTemplate = `{
                                 "type": "string"
                             }
                         }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
                     }
                 }
             },
@@ -736,18 +1140,18 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Elimina un bloque de tiempo por ID",
+                "description": "Deletes a time block by ID",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "timeblocks"
                 ],
-                "summary": "Eliminar bloque de tiempo",
+                "summary": "Delete time block",
                 "parameters": [
                     {
                         "type": "string",
-                        "description": "ID del bloque",
+                        "description": "Time block ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -765,6 +1169,162 @@ const docTemplate = `{
                     },
                     "400": {
                         "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/timeblocks/{id}/complete": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Marks a time block as completed",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "timeblocks"
+                ],
+                "summary": "Complete time block",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Time block ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.TimeBlock"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/timeblocks/{id}/start": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Marks a time block as active (in progress)",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "timeblocks"
+                ],
+                "summary": "Start time block",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Time block ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.TimeBlock"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/today": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Returns today's tasks and time blocks for planning. Provides focus time metrics comparing planned vs completed minutes. Use this endpoint to power the daily planning view.",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "planning"
+                ],
+                "summary": "Daily productivity snapshot",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/models.TodayView"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
                         "schema": {
                             "type": "object",
                             "additionalProperties": {
@@ -806,6 +1366,29 @@ const docTemplate = `{
                 }
             }
         },
+        "models.AISession": {
+            "type": "object",
+            "properties": {
+                "command": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "string"
+                },
+                "input_summary": {
+                    "type": "string"
+                },
+                "output_summary": {
+                    "type": "string"
+                },
+                "user_id": {
+                    "type": "string"
+                }
+            }
+        },
         "models.AuthResponse": {
             "type": "object",
             "properties": {
@@ -817,6 +1400,23 @@ const docTemplate = `{
                 },
                 "user": {
                     "$ref": "#/definitions/models.User"
+                }
+            }
+        },
+        "models.ColumnSummary": {
+            "type": "object",
+            "properties": {
+                "count": {
+                    "type": "integer"
+                },
+                "name": {
+                    "type": "string"
+                },
+                "task_ids": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
                 }
             }
         },
@@ -862,6 +1462,43 @@ const docTemplate = `{
                 },
                 "task_id": {
                     "type": "string"
+                }
+            }
+        },
+        "models.DashboardStats": {
+            "type": "object",
+            "properties": {
+                "columns": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.ColumnSummary"
+                    }
+                },
+                "tasks_by_priority": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                },
+                "tasks_by_status": {
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": "integer"
+                    }
+                }
+            }
+        },
+        "models.FocusSummary": {
+            "type": "object",
+            "properties": {
+                "completed_minutes": {
+                    "type": "integer"
+                },
+                "remaining_minutes": {
+                    "type": "integer"
+                },
+                "total_minutes": {
+                    "type": "integer"
                 }
             }
         },
@@ -987,6 +1624,29 @@ const docTemplate = `{
                 }
             }
         },
+        "models.TodayView": {
+            "type": "object",
+            "properties": {
+                "date": {
+                    "type": "string"
+                },
+                "focus_summary": {
+                    "$ref": "#/definitions/models.FocusSummary"
+                },
+                "tasks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.Task"
+                    }
+                },
+                "time_blocks": {
+                    "type": "array",
+                    "items": {
+                        "$ref": "#/definitions/models.TimeBlock"
+                    }
+                }
+            }
+        },
         "models.UpdateNoteRequest": {
             "type": "object",
             "required": [
@@ -1081,6 +1741,13 @@ const docTemplate = `{
                 }
             }
         }
+    },
+    "securityDefinitions": {
+        "BearerAuth": {
+            "type": "apiKey",
+            "name": "Authorization",
+            "in": "header"
+        }
     }
 }`
 
@@ -1088,10 +1755,10 @@ const docTemplate = `{
 var SwaggerInfo = &swag.Spec{
 	Version:          "1.0",
 	Host:             "localhost:8080",
-	BasePath:         "/api",
+	BasePath:         "/api/v1",
 	Schemes:          []string{},
 	Title:            "FLOWSTATE API",
-	Description:      "API para gestión de tareas con Kanban + Timeboxing + IA",
+	Description:      "API for task management with Kanban + Timeboxing + AI commands",
 	InfoInstanceName: "swagger",
 	SwaggerTemplate:  docTemplate,
 	LeftDelim:        "{{",

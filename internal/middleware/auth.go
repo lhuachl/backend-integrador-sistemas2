@@ -8,16 +8,30 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 type contextKey string
 
 const UserIDKey contextKey = "user_id"
+const RequestIDKey contextKey = "request_id"
 
 type JWTClaims struct {
 	Sub   string `json:"sub"`
 	Email string `json:"email"`
 	Exp   int    `json:"exp"`
+}
+
+func RequestIDMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		requestID := c.GetHeader("X-Request-ID")
+		if requestID == "" {
+			requestID = uuid.New().String()
+		}
+		c.Set(string(RequestIDKey), requestID)
+		c.Header("X-Request-ID", requestID)
+		c.Next()
+	}
 }
 
 func AuthMiddleware(supabaseURL, anonKey string) gin.HandlerFunc {

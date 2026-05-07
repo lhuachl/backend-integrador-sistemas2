@@ -1,4 +1,4 @@
-basePath: /api
+basePath: /api/v1
 definitions:
   models.AICommandRequest:
     properties:
@@ -19,6 +19,21 @@ definitions:
       session_id:
         type: string
     type: object
+  models.AISession:
+    properties:
+      command:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      input_summary:
+        type: string
+      output_summary:
+        type: string
+      user_id:
+        type: string
+    type: object
   models.AuthResponse:
     properties:
       expires_in:
@@ -27,6 +42,17 @@ definitions:
         type: string
       user:
         $ref: '#/definitions/models.User'
+    type: object
+  models.ColumnSummary:
+    properties:
+      count:
+        type: integer
+      name:
+        type: string
+      task_ids:
+        items:
+          type: string
+        type: array
     type: object
   models.CreateTaskRequest:
     properties:
@@ -57,6 +83,30 @@ definitions:
     - date
     - end_time
     - start_time
+    type: object
+  models.DashboardStats:
+    properties:
+      columns:
+        items:
+          $ref: '#/definitions/models.ColumnSummary'
+        type: array
+      tasks_by_priority:
+        additionalProperties:
+          type: integer
+        type: object
+      tasks_by_status:
+        additionalProperties:
+          type: integer
+        type: object
+    type: object
+  models.FocusSummary:
+    properties:
+      completed_minutes:
+        type: integer
+      remaining_minutes:
+        type: integer
+      total_minutes:
+        type: integer
     type: object
   models.LoginRequest:
     properties:
@@ -139,6 +189,21 @@ definitions:
       user_id:
         type: string
     type: object
+  models.TodayView:
+    properties:
+      date:
+        type: string
+      focus_summary:
+        $ref: '#/definitions/models.FocusSummary'
+      tasks:
+        items:
+          $ref: '#/definitions/models.Task'
+        type: array
+      time_blocks:
+        items:
+          $ref: '#/definitions/models.TimeBlock'
+        type: array
+    type: object
   models.UpdateNoteRequest:
     properties:
       content_json:
@@ -203,7 +268,7 @@ definitions:
 host: localhost:8080
 info:
   contact: {}
-  description: API para gestión de tareas con Kanban + Timeboxing + IA
+  description: API for task management with Kanban + Timeboxing + AI commands
   title: FLOWSTATE API
   version: "1.0"
 paths:
@@ -211,9 +276,15 @@ paths:
     post:
       consumes:
       - application/json
-      description: Envía un comando de IA (/descomponer, /estimar, /planificar)
+      description: |-
+        Executes AI commands for workflow automation:
+        - /descomponer: Break a task into subtasks
+        - /estimar: Estimate time for a task
+        - /planificar: Create a daily plan
+        Maintains conversation context (last 5 sessions) for personalized responses.
+        Auto-compacts context when 6+ sessions accumulated.
       parameters:
-      - description: Comando y entrada
+      - description: AI command and input
         in: body
         name: body
         required: true
@@ -232,6 +303,12 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "500":
           description: Internal Server Error
           schema:
@@ -240,14 +317,70 @@ paths:
             type: object
       security:
       - BearerAuth: []
-      summary: Comando de IA
+      summary: AI productivity assistant
+      tags:
+      - ai
+  /ai/sessions:
+    get:
+      description: Obtiene el historial de sesiones de IA del usuario
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/models.AISession'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Listar sesiones de IA
+      tags:
+      - ai
+  /ai/sessions/{id}:
+    get:
+      description: Obtiene una sesión específica por ID
+      parameters:
+      - description: Session ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.AISession'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Obtener sesión de IA
       tags:
       - ai
   /auth/confirm:
     get:
-      description: Confirma el email del usuario con el token recibido
+      description: Confirms user email with the provided token
       parameters:
-      - description: Token de confirmación
+      - description: Confirmation token
         in: query
         name: token
         required: true
@@ -267,16 +400,16 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Confirmar email
+      summary: Confirm email
       tags:
       - auth
   /auth/login:
     post:
       consumes:
       - application/json
-      description: Inicia sesión y devuelve JWT de Supabase
+      description: Authenticates user and returns Supabase JWT
       parameters:
-      - description: Credenciales
+      - description: Credentials
         in: body
         name: body
         required: true
@@ -295,16 +428,38 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Login de usuario
+      summary: User login
+      tags:
+      - auth
+  /auth/me:
+    get:
+      description: Returns the profile of the currently authenticated user based on
+        JWT
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.User'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get current user profile
       tags:
       - auth
   /auth/signup:
     post:
       consumes:
       - application/json
-      description: Envía email de confirmación para registrar nuevo usuario
+      description: Creates a new user account and sends confirmation email
       parameters:
-      - description: Datos de registro
+      - description: Registration data
         in: body
         name: body
         required: true
@@ -325,12 +480,58 @@ paths:
             additionalProperties:
               type: string
             type: object
-      summary: Registro de usuario
+      summary: Register new user
       tags:
       - auth
+  /dashboard:
+    get:
+      description: 'Returns aggregated statistics: tasks grouped by status and priority,
+        column summaries with task counts. Use to power dashboard visualizations and
+        productivity analytics.'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.DashboardStats'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Kanban board overview
+      tags:
+      - dashboard
+  /focus:
+    get:
+      description: 'Returns focus time analytics: total planned minutes, completed
+        minutes, and remaining minutes. Use to display daily focus progress and productivity
+        metrics.'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.FocusSummary'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Focus time metrics for today
+      tags:
+      - planning
   /tasks:
     get:
-      description: Obtiene todas las tareas del usuario autenticado
+      description: Returns all tasks for the authenticated user
       produces:
       - application/json
       responses:
@@ -350,15 +551,16 @@ paths:
             type: object
       security:
       - BearerAuth: []
-      summary: Listar tareas
+      summary: List all tasks
       tags:
       - tasks
     post:
       consumes:
       - application/json
-      description: Crea una nueva tarea para el usuario autenticado
+      description: 'Creates a task in the specified Kanban column. Default column
+        is "backlog". Priority options: low, medium, high.'
       parameters:
-      - description: Datos de la tarea
+      - description: Task data
         in: body
         name: body
         required: true
@@ -377,16 +579,22 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       security:
       - BearerAuth: []
-      summary: Crear tarea
+      summary: Create new task
       tags:
       - tasks
   /tasks/{id}:
     delete:
-      description: Elimina una tarea por ID
+      description: Deletes a task by ID
       parameters:
-      - description: ID de la tarea
+      - description: Task ID
         in: path
         name: id
         required: true
@@ -406,15 +614,27 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       security:
       - BearerAuth: []
-      summary: Eliminar tarea
+      summary: Delete task
       tags:
       - tasks
     get:
-      description: Obtiene una tarea específica por ID
+      description: Returns a specific task by its ID
       parameters:
-      - description: ID de la tarea
+      - description: Task ID
         in: path
         name: id
         required: true
@@ -426,6 +646,12 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/models.Task'
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "404":
           description: Not Found
           schema:
@@ -434,20 +660,20 @@ paths:
             type: object
       security:
       - BearerAuth: []
-      summary: Obtener tarea
+      summary: Get task by ID
       tags:
       - tasks
     put:
       consumes:
       - application/json
-      description: Actualiza una tarea existente
+      description: Updates an existing task with new data
       parameters:
-      - description: ID de la tarea
+      - description: Task ID
         in: path
         name: id
         required: true
         type: string
-      - description: Datos a actualizar
+      - description: Task data to update
         in: body
         name: body
         required: true
@@ -466,16 +692,63 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       security:
       - BearerAuth: []
-      summary: Actualizar tarea
+      summary: Update task
       tags:
       - tasks
-  /tasks/{id}/notes:
-    get:
-      description: Obtiene la nota asociada a una tarea
+  /tasks/{id}/complete:
+    post:
+      description: Marks a task as completed by moving it to the "done" column. Triggers
+        any associated AI workflow notifications.
       parameters:
-      - description: ID de la tarea
+      - description: ID of the task
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.Task'
+        "403":
+          description: Access denied
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Task not found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Complete task
+      tags:
+      - tasks
+  /tasks/{id}/note:
+    get:
+      description: Returns the note associated with a task (singleton per task). Returns
+        empty note if none exists.
+      parameters:
+      - description: Task ID
         in: path
         name: id
         required: true
@@ -487,6 +760,12 @@ paths:
           description: OK
           schema:
             $ref: '#/definitions/models.Note'
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
         "404":
           description: Not Found
           schema:
@@ -495,20 +774,20 @@ paths:
             type: object
       security:
       - BearerAuth: []
-      summary: Obtener nota
+      summary: Get task note
       tags:
       - notes
     put:
       consumes:
       - application/json
-      description: Guarda o actualiza el contenido de la nota de una tarea
+      description: Creates or replaces the note for a task (idempotent PUT)
       parameters:
-      - description: ID de la tarea
+      - description: Task ID
         in: path
         name: id
         required: true
         type: string
-      - description: Contenido JSON de la nota
+      - description: Note content JSON
         in: body
         name: body
         required: true
@@ -527,23 +806,29 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       security:
       - BearerAuth: []
-      summary: Guardar nota
+      summary: Save task note
       tags:
       - notes
   /tasks/{id}/position:
     patch:
       consumes:
       - application/json
-      description: Actualiza la posición y columna de una tarea (drag & drop)
+      description: Updates task position and column (drag & drop)
       parameters:
-      - description: ID de la tarea
+      - description: Task ID
         in: path
         name: id
         required: true
         type: string
-      - description: Nueva posición
+      - description: New position data
         in: body
         name: body
         required: true
@@ -564,17 +849,28 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       security:
       - BearerAuth: []
-      summary: Mover tarea
+      summary: Move task
       tags:
       - tasks
   /timeblocks:
     get:
-      description: Obtiene los bloques de tiempo del usuario, opcionalmente filtrados
-        por fecha
+      description: Returns user's time blocks, optionally filtered by date
       parameters:
-      - description: Filtrar por fecha (YYYY-MM-DD)
+      - description: Filter by date (YYYY-MM-DD)
         in: query
         name: date
         type: string
@@ -597,15 +893,15 @@ paths:
             type: object
       security:
       - BearerAuth: []
-      summary: Listar bloques de tiempo
+      summary: List time blocks
       tags:
       - timeblocks
     post:
       consumes:
       - application/json
-      description: Crea un nuevo bloque de tiempo para el usuario
+      description: Creates a new time block for the user
       parameters:
-      - description: Datos del bloque
+      - description: Time block data
         in: body
         name: body
         required: true
@@ -624,16 +920,22 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       security:
       - BearerAuth: []
-      summary: Crear bloque de tiempo
+      summary: Create time block
       tags:
       - timeblocks
   /timeblocks/{id}:
     delete:
-      description: Elimina un bloque de tiempo por ID
+      description: Deletes a time block by ID
       parameters:
-      - description: ID del bloque
+      - description: Time block ID
         in: path
         name: id
         required: true
@@ -653,22 +955,34 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       security:
       - BearerAuth: []
-      summary: Eliminar bloque de tiempo
+      summary: Delete time block
       tags:
       - timeblocks
     put:
       consumes:
       - application/json
-      description: Actualiza un bloque de tiempo existente
+      description: Updates an existing time block
       parameters:
-      - description: ID del bloque
+      - description: Time block ID
         in: path
         name: id
         required: true
         type: string
-      - description: Datos a actualizar
+      - description: Data to update
         in: body
         name: body
         required: true
@@ -687,9 +1001,138 @@ paths:
             additionalProperties:
               type: string
             type: object
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
       security:
       - BearerAuth: []
-      summary: Actualizar bloque de tiempo
+      summary: Update time block
       tags:
       - timeblocks
+  /timeblocks/{id}/complete:
+    post:
+      description: Marks a time block as completed
+      parameters:
+      - description: Time block ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.TimeBlock'
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Complete time block
+      tags:
+      - timeblocks
+  /timeblocks/{id}/start:
+    post:
+      description: Marks a time block as active (in progress)
+      parameters:
+      - description: Time block ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.TimeBlock'
+        "403":
+          description: Forbidden
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Start time block
+      tags:
+      - timeblocks
+  /timeblocks/today:
+    get:
+      description: Returns today's time blocks for the authenticated user. Includes
+        completed blocks with time metrics.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Get today's time blocks
+      tags:
+      - timeblocks
+  /today:
+    get:
+      description: Returns today's tasks and time blocks for planning. Provides focus
+        time metrics comparing planned vs completed minutes. Use this endpoint to
+        power the daily planning view.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/models.TodayView'
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      security:
+      - BearerAuth: []
+      summary: Daily productivity snapshot
+      tags:
+      - planning
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
