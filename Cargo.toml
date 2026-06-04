@@ -1,0 +1,12 @@
+[workspace]
+members = ["crates/backend", "crates/ui", "crates/shared", "crates/ui/src-tauri"]
+resolver = "2"
+
+[workspace.dependencies]
+serde = { version = "1.0", features = ["derive"] }
+tokio = { version = "1.0", features = ["full"] }
+serde_json = "1.0"
+
+[profile.release]
+opt-level = 3
+lto = true

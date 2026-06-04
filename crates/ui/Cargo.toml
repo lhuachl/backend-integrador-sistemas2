@@ -1,0 +1,15 @@
+[package]
+name = "ui"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+shared = { path = "../shared" }
+dioxus = { version = "0.7", features = ["router"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+dioxus-logger = "0.7"
+
+[features]
+default = []
+web = ["dioxus/web"]
