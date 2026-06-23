@@ -1,4 +1,9 @@
 
+# Build artifacts
+*.apk
+*.aab
+android/
+
 # InsForge & AI agent skills
 .insforge
 .agent
