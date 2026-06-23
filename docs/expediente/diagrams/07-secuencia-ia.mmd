@@ -1,0 +1,22 @@
+sequenceDiagram
+    autonumber
+    participant U as Usuario
+    participant C as Cliente
+    participant A as API
+    participant OR as OpenRouter
+    participant DB as Postgres
+
+    U->>C: Click "Resumir nota"
+    C->>A: POST /ai/summarize {note_id}
+    A->>A: verificar Pro + rate-limit
+    A->>DB: SELECT note WHERE id
+    DB-->>A: note (content)
+    alt longitud < 800 palabras
+        A-->>C: 200 {summary: nota corta}
+    else
+        A->>OR: chat completion (gpt-4o-mini)
+        OR-->>A: texto resumen
+        A->>DB: INSERT ai_usage (model, cost)
+        A-->>C: 200 {summary}
+    end
+    C->>U: Muestra resumen + opción "guardar"

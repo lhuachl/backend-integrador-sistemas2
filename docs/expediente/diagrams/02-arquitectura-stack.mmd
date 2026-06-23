@@ -1,0 +1,35 @@
+graph TB
+    subgraph Cliente
+        W[Next.js WebApp<br/>Vercel]
+        M[Expo Mobile App<br/>iOS + Android]
+    end
+    subgraph "Backend Go"
+        G[Gin router]
+        MW[Middleware:<br/>auth · cors · logger]
+        H[Handlers]
+        S[Services]
+        R[Repository<br/>sqlc]
+        M2[Models DTO]
+    end
+    DB[(PostgreSQL 16<br/>Supabase)]
+    SW[Swagger UI<br/>/swagger]
+    OAI[OpenAPI 3.1]
+
+    W -- HTTPS/JWT --> G
+    M -- HTTPS/JWT --> G
+    G --> MW --> H
+    H --> S
+    S --> R
+    S --> M2
+    R --> DB
+    G --> SW
+    OAI -.genera.-> SW
+    OAI -.genera.-> W
+    OAI -.genera.-> M
+
+    classDef box fill:#313244,stroke:#89b4fa,color:#cdd6f4;
+    class W,M,G,MW,H,S,R,M2 box;
+    classDef db fill:#1e1e2e,stroke:#a6e3a1,color:#a6e3a1;
+    class DB db;
+    classDef api fill:#1e1e2e,stroke:#cba6f7,color:#cba6f7;
+    class SW,OAI api;

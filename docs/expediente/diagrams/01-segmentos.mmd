@@ -1,0 +1,14 @@
+graph LR
+    S1[Estudiantes<br/>universitarios]
+    S2[Freelancers<br/>y profesionales]
+    S3[Equipos pequeños<br/>≤ 10 personas]
+    S4[Startups<br/>early-stage]
+    P((FlowState))
+
+    S1 --> P
+    S2 --> P
+    S3 --> P
+    S4 --> P
+
+    classDef seg fill:#313244,stroke:#cba6f7,color:#cdd6f4;
+    class S1,S2,S3,S4 seg;

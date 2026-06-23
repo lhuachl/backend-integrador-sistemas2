@@ -1,0 +1,20 @@
+/* ============================================================================
+   Print-specific tweaks
+   ============================================================================ */
+
+@media print {
+  html, body { background: var(--base) !important; }
+  a { color: var(--blue); border-bottom: none; }
+
+  .no-print, .dev-only { display: none !important; }
+
+  h1, h2, h3 { page-break-after: avoid; }
+  h1 { page-break-before: always; }
+  table, figure, pre, .callout, .mermaid-figure { page-break-inside: avoid; }
+  tr { page-break-inside: avoid; }
+
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+  }
+}

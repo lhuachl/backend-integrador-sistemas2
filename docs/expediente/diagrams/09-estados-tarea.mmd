@@ -1,0 +1,8 @@
+stateDiagram-v2
+    [*] --> todo: crear
+    todo --> in_progress: empezar
+    in_progress --> done: completar
+    todo --> done: completar (rápido)
+    in_progress --> todo: pausar
+    done --> in_progress: reabrir
+    done --> [*]: archivar

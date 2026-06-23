@@ -1,0 +1,71 @@
+version: "2"
+sql:
+  - engine: "postgresql"
+    queries: "queries/"
+    database:
+      uri: "postgresql://postgres:0f15529686bb40cf958912737c33b3fd@e5etwu6r.us-east.database.insforge.app:5432/insforge?sslmode=require"
+    gen:
+      go:
+        package: "db"
+        out: "internal/db"
+        sql_package: "pgx/v5"
+        emit_json_tags: true
+        emit_interface: true
+        emit_exact_table_names: false
+        emit_result_struct_pointers: true
+        emit_params_struct_pointers: true
+        emit_pointers_for_null_types: true
+        overrides:
+          - db_type: "pg_catalog.timestamptz"
+            go_type:
+              type: "time.Time"
+            nullable: true
+          - db_type: "pg_catalog.timestamptz"
+            go_type:
+              type: "time.Time"
+          - db_type: "pg_catalog.date"
+          - db_type: "uuid"
+            go_type:
+              type: "string"
+            nullable: true
+          - db_type: "uuid"
+            go_type:
+              type: "string"
+          - db_type: "text"
+            go_type:
+              type: "string"
+            nullable: true
+          - db_type: "text"
+            go_type:
+              type: "string"
+          - db_type: "jsonb"
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"
+              pointer: true
+            nullable: true
+          - db_type: "jsonb"
+            go_type:
+              import: "encoding/json"
+              type: "RawMessage"
+              pointer: true
+          - db_type: "bool"
+            go_type:
+              type: "bool"
+            nullable: true
+          - db_type: "bool"
+            go_type:
+              type: "bool"
+          - db_type: "float8"
+            go_type:
+              type: "float64"
+            nullable: true
+          - db_type: "float8"
+            go_type:
+              type: "float64"
+          - db_type: "int4"
+            go_type:
+              type: "int32"
+          - db_type: "pg_catalog.int4"
+            go_type:
+              type: "int32"

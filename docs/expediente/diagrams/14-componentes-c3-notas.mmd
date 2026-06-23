@@ -1,0 +1,24 @@
+graph TB
+    subgraph "Bounded context: Notas"
+        H[NoteHandler]
+        SVC[NoteService]
+        NL[NoteLinkService]
+        R[NoteRepository]
+        LR[NoteLinkRepository]
+        SEARCH[SearchService<br/>Postgres trigram]
+    end
+    DB[(Postgres)]
+
+    H --> SVC
+    SVC --> R
+    SVC --> NL
+    SVC --> SEARCH
+    NL --> LR
+    R --> DB
+    LR --> DB
+    SEARCH --> DB
+
+    classDef comp fill:#313244,stroke:#89b4fa,color:#cdd6f4;
+    class H,SVC,NL,R,LR,SEARCH comp;
+    classDef db fill:#1e1e2e,stroke:#a6e3a1,color:#a6e3a1;
+    class DB db;

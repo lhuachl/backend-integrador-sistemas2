@@ -1,0 +1,22 @@
+graph LR
+    U[Usuario final]
+    A[Administrador]
+    S[Equipo de soporte]
+    FS((FlowState<br/>Sistema))
+    G[Google OAuth]
+    OR[OpenRouter IA]
+    STR[Stripe]
+
+    U --> FS
+    A --> FS
+    S --> FS
+    FS --> G
+    FS --> OR
+    FS --> STR
+
+    classDef person fill:#313244,stroke:#cba6f7,color:#cdd6f4;
+    class U,A,S person;
+    classDef sys fill:#1e1e2e,stroke:#cba6f7,color:#cba6f7;
+    class FS sys;
+    classDef ext fill:#1e1e2e,stroke:#89b4fa,color:#89b4fa;
+    class G,OR,STR ext;

@@ -1,0 +1,13 @@
+graph LR
+    PR[Pull Request] --> CI[CI: lint + test + build]
+    CI -->|pass| MR[Merge a main]
+    MR --> CD[CD: build + deploy dev]
+    CD -->|manual| STG[Deploy staging]
+    STG -->|tag v*| PROD[Deploy prod]
+    PROD --> MON[Monitoreo]
+    MON -.rollback.-> STG
+
+    classDef step fill:#313244,stroke:#89b4fa,color:#cdd6f4;
+    class PR,CI,MR,CD,STG,PROD step;
+    classDef hot fill:#1e1e2e,stroke:#f38ba8,color:#f38ba8;
+    class MON hot;

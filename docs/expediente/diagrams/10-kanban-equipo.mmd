@@ -1,0 +1,29 @@
+graph LR
+    subgraph "Equipo FlowState"
+        O[Owner<br/>gestiona]
+        M1[Mentor<br/>revisa]
+        M2[Member A]
+        M3[Member B]
+    end
+
+    subgraph "Tareas"
+        T1[Tarea 1<br/>TODO]
+        T2[Tarea 2<br/>IN PROGRESS]
+        T3[Tarea 3<br/>DONE]
+    end
+
+    O --> T1
+    M1 --> T2
+    M2 --> T1
+    M2 --> T3
+    M3 --> T2
+    M3 --> T3
+
+    classDef person fill:#313244,stroke:#cba6f7,color:#cdd6f4;
+    class O,M1,M2,M3 person;
+    classDef todo fill:#1e1e2e,stroke:#f9e2af,color:#f9e2af;
+    classDef doing fill:#1e1e2e,stroke:#89b4fa,color:#89b4fa;
+    classDef done fill:#1e1e2e,stroke:#a6e3a1,color:#a6e3a1;
+    class T1 todo;
+    class T2 doing;
+    class T3 done;

@@ -1,0 +1,66 @@
+erDiagram
+    USERS ||--o{ NOTES : "author_id"
+    USERS ||--o{ GOALS : "user_id"
+    USERS ||--o{ TASKS : "user_id"
+    USERS ||--o{ NOTIFICATIONS : "user_id"
+    USERS ||--o{ TEAM_MEMBERS : "user_id"
+    TEAMS ||--o{ TEAM_MEMBERS : "team_id"
+    TEAMS ||--o{ NOTES : "team_id"
+    TEAMS ||--o{ GOALS : "team_id"
+    GOALS ||--o{ TASKS : "goal_id"
+    NOTES ||--o{ NOTE_LINKS : "source"
+    NOTES ||--o{ NOTE_LINKS : "target"
+
+    USERS {
+        TEXT id PK
+        TEXT email UK
+        TEXT name
+        TEXT handle UK
+        TEXT role
+    }
+    TEAMS {
+        TEXT id PK
+        TEXT name
+        TEXT slug UK
+        TEXT owner_id FK
+    }
+    TEAM_MEMBERS {
+        TEXT id PK
+        TEXT user_id FK
+        TEXT team_id FK
+        TEXT role
+    }
+    NOTES {
+        TEXT id PK
+        TEXT title
+        TEXT author_id FK
+        TEXT team_id FK
+        TEXT tags
+    }
+    NOTE_LINKS {
+        TEXT id PK
+        TEXT source_note_id FK
+        TEXT target_note_id FK
+        TEXT target_title
+    }
+    GOALS {
+        TEXT id PK
+        TEXT title
+        TEXT user_id FK
+        REAL current
+        REAL target
+        TEXT unit
+    }
+    TASKS {
+        TEXT id PK
+        TEXT title
+        TEXT status
+        TEXT user_id FK
+        TEXT goal_id FK
+    }
+    NOTIFICATIONS {
+        TEXT id PK
+        TEXT user_id FK
+        TEXT type
+        TEXT title
+    }

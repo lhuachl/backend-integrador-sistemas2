@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>{{ meta.project }} · Expediente técnico</title>
+<style>{{ css_main|safe }}</style>
+<style>{{ css_print|safe }}</style>
+</head>
+<body>
+
+<!-- ============== PORTADA ============== -->
+<section class="cover">
+  <div class="cover-header">Expediente técnico · Ingeniería de software</div>
+
+  <div>
+    <h1 class="cover-title">FlowState</h1>
+    <div class="cover-subtitle">{{ meta.tagline }}</div>
+  </div>
+
+  <div class="cover-meta">
+    <div class="cover-meta-block">
+      <div class="cover-meta-label">Materia</div>
+      <div class="cover-meta-value">{{ meta.subject }}</div>
+    </div>
+    <div class="cover-meta-block alt">
+      <div class="cover-meta-label">Docente titular</div>
+      <div class="cover-meta-value">{{ meta.docente }}</div>
+    </div>
+    <div class="cover-meta-block alt2">
+      <div class="cover-meta-label">Integrante 1</div>
+      <div class="cover-meta-value">{{ meta.integrante_1 }}</div>
+    </div>
+    <div class="cover-meta-block alt3">
+      <div class="cover-meta-label">Integrante 2</div>
+      <div class="cover-meta-value">{{ meta.integrante_2 }}</div>
+    </div>
+    <div class="cover-meta-block">
+      <div class="cover-meta-label">Gestión</div>
+      <div class="cover-meta-value">{{ meta.gestion }}</div>
+    </div>
+    <div class="cover-meta-block alt">
+      <div class="cover-meta-label">Fecha de entrega</div>
+      <div class="cover-meta-value">{{ meta.fecha }}</div>
+    </div>
+  </div>
+
+  <div class="cover-header" style="border-top:1px solid var(--surface2);border-bottom:none;padding-top:1em;">
+    {{ meta.project }} · {{ meta.version }} · Documento técnico
+  </div>
+</section>
+
+<!-- ============== CONTENIDO ============== -->
+{% for sec in sections %}
+<section class="chapter">
+{{ sec.html|safe }}
+</section>
+{% endfor %}
+
+</body>
+</html>

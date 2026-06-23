@@ -1,0 +1,27 @@
+sequenceDiagram
+    autonumber
+    participant U as Usuario
+    participant C as Cliente
+    participant H as Handler
+    participant S as Service
+    participant R as Repository (sqlc)
+    participant DB as Postgres
+
+    U->>C: Click "Crear nota"
+    U->>C: Escribe título + markdown
+    U->>C: Click "Guardar"
+    C->>H: POST /notes {title, content, tags}
+    H->>H: validar JWT + body
+    H->>S: Create(req, userID)
+    S->>S: extractWikiLinks(content)
+    S->>R: InsertNote(params)
+    R->>DB: INSERT INTO notes ... RETURNING *
+    DB-->>R: row
+    R-->>S: Note
+    S->>R: UpsertNoteLinks(sourceID, targets)
+    R->>DB: INSERT ... ON CONFLICT DO NOTHING
+    DB-->>R: ok
+    R-->>S: ok
+    S-->>H: Note
+    H-->>C: 201 {note}
+    C->>U: Toast "Nota creada" + navega a /note/[id]

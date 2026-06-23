@@ -1,0 +1,29 @@
+sequenceDiagram
+    autonumber
+    participant U as Usuario
+    participant C as Cliente
+    participant A as API
+    participant DB as Postgres
+
+    U->>C: Email + password
+    C->>A: POST /auth/login
+    A->>DB: SELECT user WHERE email
+    DB-->>A: user + password_hash
+    A->>A: bcrypt.Compare
+    alt credenciales válidas
+        A->>A: generate access (15m) + refresh (7d)
+        A->>DB: INSERT refresh_tokens (hash, exp)
+        A-->>C: 200 { user, tokens }
+        C->>C: store tokens (secure storage)
+    else password inválido
+        A-->>C: 401 invalid credentials
+    end
+
+    Note over C,A: Tras 15 minutos el access expira
+    C->>A: GET /auth/me
+    A-->>C: 401 token expired
+    C->>A: POST /auth/refresh { refresh_token }
+    A->>DB: SELECT refresh_tokens WHERE hash
+    A->>A: validate exp + revoke old
+    A->>DB: INSERT new refresh_tokens
+    A-->>C: 200 { access, refresh }

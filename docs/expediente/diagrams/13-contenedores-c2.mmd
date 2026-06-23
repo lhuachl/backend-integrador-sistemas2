@@ -1,0 +1,26 @@
+graph TB
+    subgraph Cliente
+        WB[Next.js WebApp<br/>Vercel Edge]
+        MB[Expo Mobile App<br/>iOS + Android]
+    end
+    subgraph "Backend Go"
+        API[REST API<br/>Gin + sqlc<br/>Fly.io]
+    end
+    DB[(PostgreSQL<br/>Supabase)]
+    SW[Swagger UI<br/>/swagger]
+    FS[Fly.io Storage<br/>avatars]
+
+    WB -- HTTPS/JWT --> API
+    MB -- HTTPS/JWT --> API
+    API --> DB
+    API --> SW
+    API --> FS
+
+    classDef web fill:#1e1e2e,stroke:#89b4fa,color:#89b4fa;
+    class WB,MB web;
+    classDef api fill:#313244,stroke:#a6e3a1,color:#a6e3a1;
+    class API api;
+    classDef db fill:#1e1e2e,stroke:#fab387,color:#fab387;
+    class DB db;
+    classDef aux fill:#1e1e2e,stroke:#7f849c,color:#7f849c;
+    class SW,FS aux;

@@ -1,0 +1,53 @@
+graph TB
+    subgraph "Casos de uso: Auth"
+        UC1((Registrarse))
+        UC2((Login email))
+        UC3((Login Google))
+        UC4((Verificar email))
+        UC5((Logout))
+    end
+    subgraph "Casos de uso: Notas"
+        UC6((Crear nota))
+        UC7((Editar nota))
+        UC8((Buscar nota))
+        UC9((Crear wikilink))
+        UC10((Compartir nota))
+    end
+    subgraph "Casos de uso: Equipos"
+        UC11((Crear equipo))
+        UC12((Invitar miembro))
+        UC13((Unirse a equipo))
+    end
+    subgraph "Casos de uso: Productividad"
+        UC14((Crear meta))
+        UC15((Registrar progreso))
+        UC16((Crear tarea))
+        UC17((Marcar tarea done))
+    end
+
+    U[Usuario]
+    A[Administrador]
+
+    U --> UC1
+    U --> UC2
+    U --> UC3
+    U --> UC4
+    U --> UC5
+    U --> UC6
+    U --> UC7
+    U --> UC8
+    U --> UC9
+    U --> UC10
+    U --> UC11
+    U --> UC12
+    U --> UC13
+    U --> UC14
+    U --> UC15
+    U --> UC16
+    U --> UC17
+    A --> UC8
+
+    classDef uc fill:#313244,stroke:#89b4fa,color:#cdd6f4;
+    class UC1,UC2,UC3,UC4,UC5,UC6,UC7,UC8,UC9,UC10,UC11,UC12,UC13,UC14,UC15,UC16,UC17 uc;
+    classDef actor fill:#1e1e2e,stroke:#cba6f7,color:#cba6f7;
+    class U,A actor;

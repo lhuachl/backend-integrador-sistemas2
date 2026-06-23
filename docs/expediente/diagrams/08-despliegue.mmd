@@ -1,0 +1,35 @@
+graph TB
+    subgraph "Vercel Edge"
+        W[Next.js SSR + Edge Functions]
+    end
+    subgraph "Fly.io fra1"
+        API1[API instance 1]
+        API2[API instance 2]
+    end
+    subgraph "Supabase AWS us-east-1"
+        PG[(Postgres primary)]
+        PGR[(Postgres replica)]
+    end
+    subgraph "EAS Build"
+        AP[iOS + Android bundles]
+    end
+    USR[Usuarios finales]
+
+    USR --> W
+    USR --> AP
+    W -- HTTPS/JWT --> API1
+    W -- HTTPS/JWT --> API2
+    API1 --> PG
+    API2 --> PG
+    PG --> PGR
+
+    classDef edge fill:#1e1e2e,stroke:#cba6f7,color:#cdd6f4;
+    class W edge;
+    classDef fly fill:#313244,stroke:#89b4fa,color:#cdd6f4;
+    class API1,API2 fly;
+    classDef db fill:#1e1e2e,stroke:#a6e3a1,color:#a6e3a1;
+    class PG,PGR db;
+    classDef mob fill:#313244,stroke:#fab387,color:#cdd6f4;
+    class AP mob;
+    classDef user fill:#1e1e2e,stroke:#f38ba8,color:#cdd6f4;
+    class USR user;
