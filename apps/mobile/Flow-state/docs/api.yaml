@@ -1,0 +1,847 @@
+openapi: 3.1.0
+info:
+  title: Flow-state API
+  version: 0.1.0
+  description: Mock-first API contract for the Flow-state mobile app.
+servers:
+  - url: http://localhost:3000/api
+    description: Mock local server
+paths:
+  /auth/me:
+    get:
+      operationId: getMe
+      summary: Current session user
+      responses:
+        '200':
+          description: Current user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized
+  /auth/login:
+    post:
+      operationId: login
+      summary: Email + password login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Tokens + user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+  /auth/register:
+    post:
+      operationId: register
+      summary: Email + password registration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+  /auth/google:
+    post:
+      operationId: googleAuth
+      summary: Google one-tap / credential exchange
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoogleAuthRequest'
+      responses:
+        '200':
+          description: Tokens + user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+  /auth/verify-email:
+    post:
+      operationId: verifyEmail
+      summary: Verify email code
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/VerifyEmailRequest'
+      responses:
+        '200':
+          description: Verified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+  /auth/logout:
+    post:
+      operationId: logout
+      summary: Revoke tokens
+      responses:
+        '204':
+          description: Logged out
+  /auth/refresh:
+    post:
+      operationId: refresh
+      summary: Refresh access token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200':
+          description: New tokens
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenPair'
+
+  /users/{id}:
+    get:
+      operationId: getUser
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+  /users/me/profile:
+    patch:
+      operationId: updateProfile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProfileRequest'
+      responses:
+        '200':
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+
+  /teams:
+    get:
+      operationId: listTeams
+      summary: Teams where the user is member
+      responses:
+        '200':
+          description: List of teams
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Team'
+    post:
+      operationId: createTeam
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTeamRequest'
+      responses:
+        '201':
+          description: Team created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Team'
+  /teams/{id}:
+    get:
+      operationId: getTeam
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Team detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Team'
+  /teams/{id}/members:
+    get:
+      operationId: listTeamMembers
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Members list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TeamMember'
+    post:
+      operationId: inviteMember
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InviteMemberRequest'
+      responses:
+        '201':
+          description: Invitation sent
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamMember'
+  /teams/{id}/join:
+    post:
+      operationId: joinTeam
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/JoinTeamRequest'
+      responses:
+        '200':
+          description: Joined team
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamMember'
+
+  /notes:
+    get:
+      operationId: listNotes
+      parameters:
+        - name: team_id
+          in: query
+          schema:
+            type: string
+        - name: q
+          in: query
+          schema:
+            type: string
+        - name: tag
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Notes list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Note'
+    post:
+      operationId: createNote
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNoteRequest'
+      responses:
+        '201':
+          description: Note created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+  /notes/{id}:
+    get:
+      operationId: getNote
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Note detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+    patch:
+      operationId: updateNote
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateNoteRequest'
+      responses:
+        '200':
+          description: Note updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+    delete:
+      operationId: deleteNote
+      responses:
+        '204':
+          description: Note deleted
+  /notes/{id}/links:
+    get:
+      operationId: getNoteLinks
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Linked notes
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NoteLink'
+    post:
+      operationId: addNoteLink
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateNoteLinkRequest'
+      responses:
+        '201':
+          description: Link created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NoteLink'
+  /notes/{id}/share:
+    post:
+      operationId: shareNote
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShareNoteRequest'
+      responses:
+        '200':
+          description: Shared
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Note'
+
+  /goals:
+    get:
+      operationId: listGoals
+      responses:
+        '200':
+          description: Goals list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Goal'
+    post:
+      operationId: createGoal
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGoalRequest'
+      responses:
+        '201':
+          description: Goal created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Goal'
+  /goals/{id}:
+    get:
+      operationId: getGoal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Goal detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Goal'
+    patch:
+      operationId: updateGoal
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateGoalRequest'
+      responses:
+        '200':
+          description: Goal updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Goal'
+    delete:
+      operationId: deleteGoal
+      responses:
+        '204':
+          description: Goal deleted
+  /goals/{id}/progress:
+    post:
+      operationId: addProgress
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddProgressRequest'
+      responses:
+        '200':
+          description: Progress added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Goal'
+
+  /tasks:
+    get:
+      operationId: listTasks
+      parameters:
+        - name: goal_id
+          in: query
+          schema:
+            type: string
+        - name: due_date
+          in: query
+          schema:
+            type: string
+            format: date
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [todo, in_progress, done]
+      responses:
+        '200':
+          description: Tasks list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Task'
+    post:
+      operationId: createTask
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateTaskRequest'
+      responses:
+        '201':
+          description: Task created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+  /tasks/{id}:
+    patch:
+      operationId: updateTask
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateTaskRequest'
+      responses:
+        '200':
+          description: Task updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Task'
+    delete:
+      operationId: deleteTask
+      responses:
+        '204':
+          description: Task deleted
+
+  /graph:
+    get:
+      operationId: getGraph
+      parameters:
+        - name: team_id
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Graph nodes and edges
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Graph'
+
+  /notifications:
+    get:
+      operationId: listNotifications
+      responses:
+        '200':
+          description: Notifications
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+    patch:
+      operationId: markNotificationsRead
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MarkReadRequest'
+      responses:
+        '204':
+          description: Marked as read
+
+components:
+  schemas:
+    User:
+      type: object
+      required: [id, email, name]
+      properties:
+        id: { type: string }
+        email: { type: string, format: email }
+        name: { type: string }
+        handle: { type: string }
+        avatar_url: { type: string, nullable: true }
+        role: { type: string, enum: [user, mentor, admin] }
+        created_at: { type: string, format: date-time }
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string }
+    RegisterRequest:
+      type: object
+      required: [email, password, name]
+      properties:
+        email: { type: string, format: email }
+        password: { type: string, minLength: 8 }
+        name: { type: string }
+    GoogleAuthRequest:
+      type: object
+      required: [id_token]
+      properties:
+        id_token: { type: string }
+    VerifyEmailRequest:
+      type: object
+      required: [email, code]
+      properties:
+        email: { type: string }
+        code: { type: string, pattern: '^[0-9]{6}$' }
+    RefreshRequest:
+      type: object
+      required: [refresh_token]
+      properties:
+        refresh_token: { type: string }
+    TokenPair:
+      type: object
+      required: [access_token, refresh_token]
+      properties:
+        access_token: { type: string }
+        refresh_token: { type: string }
+        expires_in: { type: integer }
+    AuthResponse:
+      type: object
+      required: [user, tokens]
+      properties:
+        user: { $ref: '#/components/schemas/User' }
+        tokens: { $ref: '#/components/schemas/TokenPair' }
+        requires_verification: { type: boolean }
+    UpdateProfileRequest:
+      type: object
+      properties:
+        name: { type: string }
+        handle: { type: string }
+        avatar_url: { type: string, nullable: true }
+
+    Team:
+      type: object
+      required: [id, name, slug]
+      properties:
+        id: { type: string }
+        name: { type: string }
+        slug: { type: string }
+        description: { type: string, nullable: true }
+        owner_id: { type: string }
+        created_at: { type: string, format: date-time }
+    TeamMember:
+      type: object
+      required: [id, user_id, team_id, role]
+      properties:
+        id: { type: string }
+        user_id: { type: string }
+        team_id: { type: string }
+        role: { type: string, enum: [owner, mentor, member] }
+        joined_at: { type: string, format: date-time }
+    CreateTeamRequest:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string }
+        description: { type: string }
+    InviteMemberRequest:
+      type: object
+      required: [email]
+      properties:
+        email: { type: string }
+        role: { type: string, enum: [mentor, member], default: member }
+    JoinTeamRequest:
+      type: object
+      required: [token]
+      properties:
+        token: { type: string }
+
+    Note:
+      type: object
+      required: [id, title, content, author_id]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        content: { type: string }
+        author_id: { type: string }
+        team_id: { type: string, nullable: true }
+        tags: { type: array, items: { type: string } }
+        is_public: { type: boolean }
+        shared_with: { type: array, items: { type: string } }
+        created_at: { type: string, format: date-time }
+        updated_at: { type: string, format: date-time }
+    CreateNoteRequest:
+      type: object
+      required: [title, content]
+      properties:
+        title: { type: string }
+        content: { type: string }
+        team_id: { type: string, nullable: true }
+        tags: { type: array, items: { type: string } }
+        is_public: { type: boolean }
+    UpdateNoteRequest:
+      type: object
+      properties:
+        title: { type: string }
+        content: { type: string }
+        tags: { type: array, items: { type: string } }
+        is_public: { type: boolean }
+    NoteLink:
+      type: object
+      required: [id, source_note_id, target_note_id, target_title]
+      properties:
+        id: { type: string }
+        source_note_id: { type: string }
+        target_note_id: { type: string, nullable: true }
+        target_title: { type: string }
+    CreateNoteLinkRequest:
+      type: object
+      required: [target_title]
+      properties:
+        target_title: { type: string }
+    ShareNoteRequest:
+      type: object
+      required: [team_id]
+      properties:
+        team_id: { type: string }
+        permission: { type: string, enum: [read, edit], default: read }
+
+    Goal:
+      type: object
+      required: [id, title, user_id, current, target, unit]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        description: { type: string, nullable: true }
+        user_id: { type: string }
+        team_id: { type: string, nullable: true }
+        current: { type: number }
+        target: { type: number }
+        unit: { type: string }
+        deadline: { type: string, format: date, nullable: true }
+        created_at: { type: string, format: date-time }
+    CreateGoalRequest:
+      type: object
+      required: [title, target, unit]
+      properties:
+        title: { type: string }
+        description: { type: string }
+        target: { type: number }
+        unit: { type: string }
+        deadline: { type: string, format: date }
+    UpdateGoalRequest:
+      type: object
+      properties:
+        title: { type: string }
+        description: { type: string }
+        target: { type: number }
+        unit: { type: string }
+        deadline: { type: string, format: date }
+    AddProgressRequest:
+      type: object
+      required: [amount]
+      properties:
+        amount: { type: number }
+        note: { type: string }
+
+    Task:
+      type: object
+      required: [id, title, status, user_id]
+      properties:
+        id: { type: string }
+        title: { type: string }
+        status: { type: string, enum: [todo, in_progress, done] }
+        user_id: { type: string }
+        goal_id: { type: string, nullable: true }
+        due_date: { type: string, format: date, nullable: true }
+        created_at: { type: string, format: date-time }
+    CreateTaskRequest:
+      type: object
+      required: [title]
+      properties:
+        title: { type: string }
+        goal_id: { type: string }
+        due_date: { type: string, format: date }
+        status: { type: string, enum: [todo, in_progress, done], default: todo }
+    UpdateTaskRequest:
+      type: object
+      properties:
+        title: { type: string }
+        status: { type: string, enum: [todo, in_progress, done] }
+        due_date: { type: string, format: date }
+
+    Graph:
+      type: object
+      required: [nodes, edges]
+      properties:
+        nodes:
+          type: array
+          items:
+            type: object
+            required: [id, label, type]
+            properties:
+              id: { type: string }
+              label: { type: string }
+              type: { type: string, enum: [note, goal, user, tag] }
+        edges:
+          type: array
+          items:
+            type: object
+            required: [source, target]
+            properties:
+              source: { type: string }
+              target: { type: string }
+              label: { type: string }
+
+    Notification:
+      type: object
+      required: [id, type, title, body]
+      properties:
+        id: { type: string }
+        type: { type: string }
+        title: { type: string }
+        body: { type: string }
+        read: { type: boolean }
+        created_at: { type: string, format: date-time }
+    MarkReadRequest:
+      type: object
+      properties:
+        ids: { type: array, items: { type: string } }

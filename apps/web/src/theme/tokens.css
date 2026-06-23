@@ -1,0 +1,164 @@
+/* ============================================================================
+   Flow-state — Glass utilities, dots, badges, scrollbar
+   Colors come from globals.css (Catppuccin Mocha shadcn tweakcn)
+   ============================================================================ */
+
+@layer components {
+  .glass-panel {
+    background-color: color-mix(in oklch, var(--surface0) 70%, transparent);
+    backdrop-filter: blur(12px) saturate(140%);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    border: 1px solid color-mix(in oklch, var(--surface2) 60%, transparent);
+    box-shadow:
+      inset 0 1px 0 0 color-mix(in oklch, white 4%, transparent),
+      0 1px 2px 0 rgb(0 0 0 / 0.1);
+  }
+
+  .glass-card {
+    background-color: color-mix(in oklch, var(--surface0) 70%, transparent);
+    backdrop-filter: blur(12px) saturate(140%);
+    -webkit-backdrop-filter: blur(12px) saturate(140%);
+    border: 1px solid color-mix(in oklch, var(--surface2) 60%, transparent);
+    box-shadow:
+      inset 0 1px 0 0 color-mix(in oklch, white 4%, transparent),
+      0 1px 3px 0 rgb(0 0 0 / 0.15);
+    transition: border-color 200ms ease-out, box-shadow 200ms ease-out;
+  }
+
+  .glass-card:hover {
+    border-color: color-mix(in oklch, var(--mauve) 35%, transparent);
+    box-shadow:
+      inset 0 1px 0 0 color-mix(in oklch, white 5%, transparent),
+      0 0 24px -8px var(--glow-mauve);
+  }
+
+  .glass-input {
+    background-color: color-mix(in oklch, var(--surface1) 60%, transparent);
+    border: 1px solid color-mix(in oklch, var(--surface2) 60%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: border-color 150ms ease-out, box-shadow 150ms ease-out;
+  }
+
+  .glass-input:focus {
+    outline: none;
+    border-color: color-mix(in oklch, var(--mauve) 50%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in oklch, var(--mauve) 20%, transparent);
+  }
+
+  .glass-button {
+    background-color: color-mix(in oklch, var(--surface1) 70%, transparent);
+    border: 1px solid color-mix(in oklch, var(--surface2) 50%, transparent);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    transition: all 150ms ease-out;
+  }
+
+  .glass-button:hover {
+    background-color: color-mix(in oklch, var(--surface2) 70%, transparent);
+    border-color: color-mix(in oklch, var(--mauve) 40%, transparent);
+  }
+
+  .glass-chip {
+    background-color: color-mix(in oklch, var(--surface1) 70%, transparent);
+    border: 1px solid color-mix(in oklch, var(--surface2) 50%, transparent);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+}
+
+/* ============================================================================
+   Status dots
+   ============================================================================ */
+@layer components {
+  .dot {
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+    flex-shrink: 0;
+  }
+  .dot-success { background-color: var(--green); box-shadow: 0 0 8px var(--green); }
+  .dot-warning { background-color: var(--peach); box-shadow: 0 0 8px var(--peach); }
+  .dot-danger  { background-color: var(--red); box-shadow: 0 0 8px var(--red); }
+  .dot-info    { background-color: var(--sapphire); box-shadow: 0 0 8px var(--sapphire); }
+  .dot-muted   { background-color: var(--overlay1); }
+  .dot-mauve   { background-color: var(--mauve); box-shadow: 0 0 8px var(--glow-mauve); }
+}
+
+/* ============================================================================
+   Status badges
+   ============================================================================ */
+@layer components {
+  .badge-soft {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    padding: 0.125rem 0.5rem;
+    border-radius: 9999px;
+    font-family: var(--font-mono);
+    font-size: 0.6875rem;
+    line-height: 1rem;
+    background-color: color-mix(in oklch, var(--surface1) 60%, transparent);
+    border: 1px solid color-mix(in oklch, var(--surface2) 50%, transparent);
+  }
+  .badge-success { color: var(--green); }
+  .badge-warning { color: var(--peach); }
+  .badge-danger  { color: var(--red); }
+  .badge-info    { color: var(--sapphire); }
+  .badge-mauve   { color: var(--mauve); }
+  .badge-muted   { color: var(--muted-foreground); }
+}
+
+/* ============================================================================
+   Scrollbar
+   ============================================================================ */
+@layer base {
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background-color: color-mix(in oklch, var(--surface2) 80%, transparent);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: color-mix(in oklch, var(--overlay1) 80%, transparent);
+  }
+  ::selection {
+    background-color: color-mix(in oklch, var(--mauve) 35%, transparent);
+    color: var(--foreground);
+  }
+}
+
+/* ============================================================================
+   Hairline border helper
+   ============================================================================ */
+@layer utilities {
+  .border-hairline {
+    border-width: 1px;
+    border-color: color-mix(in oklch, white 6%, transparent);
+  }
+}
+
+/* ============================================================================
+   Markdown wikilinks — [[title]] clickable spans
+   ============================================================================ */
+@layer components {
+  .wikilink {
+    color: var(--mauve);
+    background-color: color-mix(in oklch, var(--mauve) 12%, transparent);
+    padding: 0.05rem 0.3rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 0.8em;
+    transition: background-color 150ms ease;
+  }
+  .wikilink:hover {
+    background-color: color-mix(in oklch, var(--mauve) 25%, transparent);
+  }
+}

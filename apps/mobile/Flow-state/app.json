@@ -1,0 +1,44 @@
+{
+  "expo": {
+    "name": "Flow-state",
+    "slug": "Flow-state",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "scheme": "flowstate",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#1e1e2e",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1e1e2e",
+      "dark": {
+        "backgroundColor": "#1e1e2e"
+      }
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.flowstate.app"
+    },
+    "android": {
+      "package": "com.flowstate.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#1e1e2e",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": true
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-font",
+      "expo-sqlite"
+    ]
+  }
+}
