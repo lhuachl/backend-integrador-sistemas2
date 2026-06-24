@@ -22,7 +22,7 @@ func RegisterRoutes(
 	logger *zap.Logger,
 ) {
 	health := NewHealthHandler()
-	authH := NewAuthHandler(auth, logger)
+	authH := NewAuthHandler(auth, users, logger)
 	noteH := NewNoteHandler(notes, logger)
 	teamH := NewTeamHandler(teams)
 	goalH := NewGoalHandler(goals)

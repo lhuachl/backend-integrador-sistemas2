@@ -2,7 +2,7 @@ import type { ApiClient, AuthResponse, LoginBody, RegisterBody, GoogleBody, Veri
 import type { User, InternalUser, Team, TeamMember, Note, NoteLink, Goal, Task, GraphData, Notification } from "../mock/data";
 
 const TOKEN_KEY = "flowstate_tokens";
-const baseURL = "http://localhost:3000/api";
+const baseURL = "http://localhost:3000/api/v1";
 
 async function getBaseURL(): Promise<string> {
   if (typeof window !== "undefined" && process.env.NEXT_PUBLIC_API_URL) {
@@ -46,9 +46,9 @@ async function request<T>(path: string, opts: RequestInit = {}): Promise<T> {
         body: JSON.stringify({ refresh_token: tokens.refresh_token }),
       });
       if (refreshRes.ok) {
-        const data = await refreshRes.json();
-        persist(data.tokens);
-        headers["Authorization"] = `Bearer ${data.tokens.access_token}`;
+        const newTokens = await refreshRes.json();
+        persist(newTokens);
+        headers["Authorization"] = `Bearer ${newTokens.access_token}`;
         const retryRes = await fetch(url, { ...opts, headers });
         if (retryRes.status === 204) return undefined as T;
         if (!retryRes.ok) throw new Error(`API error: ${retryRes.status}`);

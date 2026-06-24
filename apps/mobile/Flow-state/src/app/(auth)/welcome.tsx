@@ -6,11 +6,13 @@ import { catppuccin, spacing, typography } from '@/theme/catppuccin';
 import { useState } from 'react';
 import { useAuth } from '@/store/auth';
 import { client } from '@/lib/api/client';
+import { useGoogleAuth } from '@/hooks/useGoogleAuth';
 
 export default function WelcomeScreen() {
   const [email, setEmail] = useState('');
   const router = useRouter();
   const { loading, setError } = useAuth();
+  const { signInWithGoogle, enabled: googleEnabled, loading: googleLoading } = useGoogleAuth();
 
   function isValidEmail(value: string) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -30,12 +32,13 @@ export default function WelcomeScreen() {
     });
   }
 
-  function continueWithGoogle() {
+  async function continueWithGoogle() {
     Haptics.selectionAsync();
-    router.push({
-      pathname: '/(auth)/email-auth',
-      params: { email: '', mode: 'google' },
-    });
+    if (!googleEnabled) {
+      setError('Google OAuth no configurado');
+      return;
+    }
+    await signInWithGoogle();
   }
 
   return (
@@ -77,6 +80,7 @@ export default function WelcomeScreen() {
           <Button
             variant="outline"
             size="lg"
+            loading={googleLoading}
             icon={<GoogleLogo size={18} />}
             onPress={continueWithGoogle}
           >

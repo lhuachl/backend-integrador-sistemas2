@@ -11,19 +11,13 @@ export default function EmailAuthScreen() {
   const router = useRouter();
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
-  const { login, register, google, loading, error, setError } = useAuth();
+  const { login, register, loading, error, setError } = useAuth();
 
-  const isGoogle = mode === 'google';
   const isLogin = mode === 'login';
 
   async function submit() {
     Haptics.selectionAsync();
     setError(null);
-
-    if (isGoogle) {
-      await google('mock-google-token');
-      return;
-    }
 
     if (isLogin) {
       if (!password) {
@@ -49,19 +43,15 @@ export default function EmailAuthScreen() {
         <View style={styles.header}>
           <Icon name="lock" size={40} color={catppuccin.mocha.lavender} />
           <Text variant="h1" bold style={styles.title}>
-            {isGoogle ? 'Google' : isLogin ? 'Bienvenido de nuevo' : 'Crear cuenta'}
+            {isLogin ? 'Bienvenido de nuevo' : 'Crear cuenta'}
           </Text>
           <Text variant="body" color="subtext0" align="center">
-            {isGoogle
-              ? 'Simulamos el inicio de sesión con Google.'
-              : isLogin
-                ? email
-                : 'Completa tus datos para empezar.'}
+            {isLogin ? email : 'Completa tus datos para empezar.'}
           </Text>
         </View>
 
         <View style={styles.form}>
-          {!isLogin && !isGoogle && (
+          {!isLogin && (
             <Input
               label="Nombre"
               placeholder="Cómo te llamas"
@@ -71,18 +61,16 @@ export default function EmailAuthScreen() {
             />
           )}
 
-          {!isGoogle && (
-            <Input
-              label="Contraseña"
-              placeholder="Mínimo 8 caracteres"
-              secureTextEntry
-              value={password}
-              onChangeText={setPassword}
-              leftIcon={<Icon name="lock" size={18} color={catppuccin.mocha.overlay1} />}
-              returnKeyType="go"
-              onSubmitEditing={submit}
-            />
-          )}
+          <Input
+            label="Contraseña"
+            placeholder="Mínimo 8 caracteres"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+            leftIcon={<Icon name="lock" size={18} color={catppuccin.mocha.overlay1} />}
+            returnKeyType="go"
+            onSubmitEditing={submit}
+          />
 
           {error && (
             <Text variant="small" color="red" align="center">
@@ -91,7 +79,7 @@ export default function EmailAuthScreen() {
           )}
 
           <Button size="lg" loading={loading} onPress={submit}>
-            {isGoogle ? 'Entrar con Google' : isLogin ? 'Entrar' : 'Crear cuenta'}
+            {isLogin ? 'Entrar' : 'Crear cuenta'}
           </Button>
 
           <Button variant="ghost" size="sm" onPress={() => router.back()}>

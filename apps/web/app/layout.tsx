@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { JetBrains_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { AuthGuard } from "@/components/AuthGuard";
@@ -31,6 +32,7 @@ export default function RootLayout({
     >
       <body className="min-h-full bg-background text-foreground flex flex-col">
         <AuthGuard>{children}</AuthGuard>
+        <Script src="https://accounts.google.com/gsi/client" strategy="afterInteractive" />
       </body>
     </html>
   );

@@ -12,12 +12,13 @@ import (
 
 type AuthHandler struct {
 	svc      *service.AuthService
+	userSvc  *service.UserService
 	validate *validator.Validate
 	logger   *zap.Logger
 }
 
-func NewAuthHandler(svc *service.AuthService, logger *zap.Logger) *AuthHandler {
-	return &AuthHandler{svc: svc, validate: validator.New(), logger: logger}
+func NewAuthHandler(svc *service.AuthService, userSvc *service.UserService, logger *zap.Logger) *AuthHandler {
+	return &AuthHandler{svc: svc, userSvc: userSvc, validate: validator.New(), logger: logger}
 }
 
 func (h *AuthHandler) Register(c *gin.Context) {
@@ -77,7 +78,8 @@ func (h *AuthHandler) GoogleAuth(c *gin.Context) {
 		return
 	}
 	if err != nil {
-		notImplemented(c)
+		h.logger.Error("google auth failed", zap.Error(err), zap.String("request_id", middleware.GetRequestID(c)))
+		internalError(c)
 		return
 	}
 	ok(c, resp)
@@ -107,9 +109,17 @@ func (h *AuthHandler) VerifyEmail(c *gin.Context) {
 }
 
 func (h *AuthHandler) Me(c *gin.Context) {
-	email := c.GetString("email")
-	id := c.GetString("user_id")
-	ok(c, gin.H{"id": id, "email": email})
+	userID := middleware.GetUserID(c)
+	user, err := h.userSvc.GetByID(c.Request.Context(), userID)
+	if err == model.ErrNotFound {
+		unauthorized(c)
+		return
+	}
+	if err != nil {
+		internalError(c)
+		return
+	}
+	ok(c, user)
 }
 
 func (h *AuthHandler) Logout(c *gin.Context) {

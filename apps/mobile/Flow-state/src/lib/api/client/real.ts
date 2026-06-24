@@ -9,7 +9,7 @@ let api: AxiosInstance | null = null;
 
 function getApi(): AxiosInstance {
   if (!api) {
-    const baseURL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000/api';
+    const baseURL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000/api/v1';
     api = axios.create({ baseURL, timeout: 10000 });
 
     api.interceptors.request.use(async (config) => {
@@ -32,7 +32,7 @@ function getApi(): AxiosInstance {
             if (raw) {
               const tokens = JSON.parse(raw);
               const res = await axios.post(`${baseURL}/auth/refresh`, { refresh_token: tokens.refresh_token });
-              const newTokens = res.data.tokens;
+              const newTokens = res.data;
               await SecureStore.setItemAsync(TOKEN_KEY, JSON.stringify(newTokens));
               error.config.headers.Authorization = `Bearer ${newTokens.access_token}`;
               return axios(error.config);
@@ -105,7 +105,11 @@ export const realClient: ApiClient = {
   },
 
   listNotes: async (userId, opts) => {
-    const { data } = await getApi().get<Note[]>('/notes', { params: opts });
+    const params: Record<string, string> = {};
+    if (opts?.teamId) params.team_id = opts.teamId;
+    if (opts?.q) params.q = opts.q;
+    if (opts?.tag) params.tag = opts.tag;
+    const { data } = await getApi().get<Note[]>('/notes', { params });
     return data;
   },
   getNote: async (id) => {
@@ -161,7 +165,10 @@ export const realClient: ApiClient = {
   },
 
   listTasks: async (userId, opts) => {
-    const { data } = await getApi().get<Task[]>('/tasks', { params: opts });
+    const params: Record<string, string> = {};
+    if (opts?.goalId) params.goal_id = opts.goalId;
+    if (opts?.status) params.status = opts.status;
+    const { data } = await getApi().get<Task[]>('/tasks', { params });
     return data;
   },
   createTask: async (userId, body) => {
